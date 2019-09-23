@@ -5,6 +5,7 @@ public class JsonParser implements JsonParserConstants {
 
   public static void main(String[] args) {
     JsonParser parser = new JsonParser(System.in);
+
   }
 
 class JsonElement {

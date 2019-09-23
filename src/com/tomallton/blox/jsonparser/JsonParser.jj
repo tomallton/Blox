@@ -10,6 +10,7 @@ public class JsonParser {
 
   public static void main(String[] args) {
     JsonParser parser = new JsonParser(System.in);
+    
   }
 
 class JsonElement {
@@ -17,6 +18,12 @@ class JsonElement {
 }
 
 class JsonValue extends JsonElement {
+
+  private final Object value;
+
+  public JsonValue(Object value) {
+    this.value = value;
+  }
 
 }
 
@@ -28,10 +35,74 @@ class JsonObject extends JsonElement {
 
 PARSER_END(JsonParser)
 
+TOKEN:
+{
+  < QUOTE: "\"" >
+}
+
 SKIP :
 {
   " "
 | "\r"
 | "\t"
 | "\n"
+}
+
+void parse() throws ParseException :
+{
+  JsonElement element;
+}
+{
+  element=element()
+}
+
+JsonElement element() : 
+{
+
+}
+{
+  value() | array() | object()
+}
+
+JsonValue value() :
+{
+  
+}
+{
+  < NUMBER > | < STRING >
+}
+
+String string() :
+{
+  StringBuilder builder = new StringBuilder();
+}
+{
+  <QUOTE> (getChar(builder))* <QUOTE>
+}
+
+void getChar(StringBuilder builder) :
+{
+  Token t;
+}
+{
+  (t = <CHAR>)
+  {
+	builder.append(t.image.charAt(0));
+  }
+}
+
+JsonArray array() :
+{
+  
+}
+{
+
+}
+
+JsonObject object() :
+{
+  
+}
+{
+
 }
