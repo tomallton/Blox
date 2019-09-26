@@ -9,8 +9,9 @@ package com.tomallton.blox.jsonparser;
 public class JsonParser {
 
   public static void main(String[] args) {
+    // https://github.com/RobertFischer/json-parser/blob/master/src/main/javacc/com/smokejumperit/json/parser/JSONParser.jj
     JsonParser parser = new JsonParser(System.in);
-    
+    parser.parse();
   }
 
 class JsonElement {
@@ -35,9 +36,10 @@ class JsonObject extends JsonElement {
 
 PARSER_END(JsonParser)
 
-TOKEN:
+TOKEN :
 {
-  < QUOTE: "\"" >
+  < #QUOTE: "\"" >
+  < STRING_BODY >
 }
 
 SKIP :
@@ -74,7 +76,7 @@ JsonValue value() :
 
 String string() :
 {
-  StringBuilder builder = new StringBuilder();
+  
 }
 {
   <QUOTE> (getChar(builder))* <QUOTE>
