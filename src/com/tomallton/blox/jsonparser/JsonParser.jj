@@ -14,32 +14,13 @@ public class JsonParser {
     parser.parse();
   }
 
-class JsonElement {
-
-}
-
-class JsonValue extends JsonElement {
-
-  private final Object value;
-
-  public JsonValue(Object value) {
-    this.value = value;
-  }
-
-}
-
-class JsonObject extends JsonElement {
-
-}
-
-}
-
 PARSER_END(JsonParser)
 
 TOKEN :
 {
-  < #QUOTE: "\"" >
-  < STRING_BODY >
+  < #QUOTE: "\"" > |
+  < #SQUARE_BRACKET_OPEN: "[" > |
+  < #SQUARE_BRACKET_CLOSE: "]" >
 }
 
 SKIP :
@@ -76,10 +57,13 @@ JsonValue value() :
 
 String string() :
 {
-  
+  StringBuilder builder = new StringBuilder();
 }
 {
-  <QUOTE> (getChar(builder))* <QUOTE>
+  (<QUOTE> (getChar(builder))* <QUOTE>)
+  {
+    return builder.toString();
+  }
 }
 
 void getChar(StringBuilder builder) :
@@ -93,12 +77,26 @@ void getChar(StringBuilder builder) :
   }
 }
 
-JsonArray array() :
+List<Object> array() :
 {
-  
+  List<Object> array = new ArrayList<>();
+  Object element;
 }
 {
-
+  <SQUARE_BRACKET_OPEN>
+	element = element();
+	{
+	  array.add(element);
+	  value = null;
+	}
+	(	  <COMMA>
+	  element = element();
+	    {
+	      array.add(element);
+	      value = null;
+	    }
+	)*
+  <SQUARE_BRACKET_CLOSE>
 }
 
 JsonObject object() :
