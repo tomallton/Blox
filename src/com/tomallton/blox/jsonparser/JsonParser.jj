@@ -14,6 +14,7 @@ public class JsonParser {
     parser.parse();
   }
 
+}
 PARSER_END(JsonParser)
 
 TOKEN :
@@ -99,10 +100,10 @@ List<Object> array() :
   <SQUARE_BRACKET_CLOSE>
 }
 
-JsonObject object() :
+/*JsonObject object() :
 {
   
 }
 {
 
-}
+}*/
