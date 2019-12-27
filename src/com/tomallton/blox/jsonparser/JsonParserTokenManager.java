@@ -2,6 +2,10 @@
 package com.tomallton.blox.jsonparser;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /** Token Manager. */
 public class JsonParserTokenManager implements JsonParserConstants
@@ -33,6 +37,18 @@ static private int jjMoveStringLiteralDfa0_0()
 {
    switch(curChar)
    {
+      case 44:
+         return jjStopAtPos(0, 3);
+      case 58:
+         return jjStopAtPos(0, 4);
+      case 91:
+         return jjStopAtPos(0, 5);
+      case 93:
+         return jjStopAtPos(0, 6);
+      case 123:
+         return jjStopAtPos(0, 7);
+      case 125:
+         return jjStopAtPos(0, 8);
       default :
          return jjMoveNfa_0(2, 0);
    }
@@ -61,8 +77,8 @@ static private int jjMoveNfa_0(int startState, int curPos)
                case 2:
                   if ((0x3ff000000000000L & l) != 0L)
                   {
-                     if (kind > 5)
-                        kind = 5;
+                     if (kind > 9)
+                        kind = 9;
                      jjCheckNAddStates(0, 2);
                   }
                   else if (curChar == 45)
@@ -79,8 +95,8 @@ static private int jjMoveNfa_0(int startState, int curPos)
                case 1:
                   if ((0x3ff000000000000L & l) == 0L)
                      break;
-                  if (kind > 6)
-                     kind = 6;
+                  if (kind > 10)
+                     kind = 10;
                   jjCheckNAdd(1);
                   break;
                case 3:
@@ -88,8 +104,8 @@ static private int jjMoveNfa_0(int startState, int curPos)
                      jjCheckNAddTwoStates(3, 4);
                   break;
                case 4:
-                  if (curChar == 34 && kind > 7)
-                     kind = 7;
+                  if (curChar == 34 && kind > 11)
+                     kind = 11;
                   break;
                case 5:
                   if (curChar == 45)
@@ -98,8 +114,8 @@ static private int jjMoveNfa_0(int startState, int curPos)
                case 6:
                   if ((0x3ff000000000000L & l) == 0L)
                      break;
-                  if (kind > 5)
-                     kind = 5;
+                  if (kind > 9)
+                     kind = 9;
                   jjCheckNAdd(6);
                   break;
                case 7:
@@ -109,8 +125,8 @@ static private int jjMoveNfa_0(int startState, int curPos)
                case 8:
                   if ((0x3ff000000000000L & l) == 0L)
                      break;
-                  if (kind > 5)
-                     kind = 5;
+                  if (kind > 9)
+                     kind = 9;
                   jjCheckNAddStates(0, 2);
                   break;
                default : break;
@@ -166,17 +182,18 @@ static final int[] jjnextStates = {
 
 /** Token literal values. */
 public static final String[] jjstrLiteralImages = {
-"", null, null, null, null, null, null, null, null, null, null, null, };
+"", null, null, "\54", "\72", "\133", "\135", "\173", "\175", null, null, null, 
+null, null, null, null, };
 
 /** Lexer state names. */
 public static final String[] lexStateNames = {
    "DEFAULT",
 };
 static final long[] jjtoToken = {
-   0xe1L, 
+   0xff9L, 
 };
 static final long[] jjtoSkip = {
-   0xf00L, 
+   0xf000L, 
 };
 static protected SimpleCharStream input_stream;
 static private final int[] jjrounds = new int[9];

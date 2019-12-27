@@ -9,6 +9,10 @@ package com.tomallton.blox.jsonparser;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class JsonParser {
 
@@ -25,9 +29,13 @@ PARSER_END(JsonParser)
 TOKEN :
 {
   < #QUOTE: "\"" > |
-  < #SQUARE_BRACKET_OPEN: "[" > |
-  < #SQUARE_BRACKET_CLOSE: "]" > |
   < #DIGIT: ["0"-"9"] > |
+  < COMMA: "," > |
+  < COLON: ":" > |
+  < BRACKET_OPEN: "[" > |
+  < BRACKET_CLOSE: "]" > |
+  < BRACE_OPEN: "{" > |
+  < BRACE_CLOSE: "}" > |
   < INTEGER: ("-")? (<DIGIT>)+ > |
   < DECIMAL: ("-")? (<DIGIT>)* "." (<DIGIT>)+ > |
   < STRING: < QUOTE > (~["\""])+ < QUOTE > >
@@ -41,7 +49,7 @@ SKIP :
 | "\n"
 }
 
-Object parse() throws ParseException :
+Object parse() :
 {
   Object json;
 }
@@ -55,7 +63,7 @@ Object element() :
   Object element;
 }
 {
-  element=value()/* | array() | object()*/
+  element=value() | element=array() | element=object()
   { return element; }
 }
 
@@ -64,7 +72,12 @@ Object value() :
   Object value;
 }
 {
-  value=number()
+  (
+    value=number()
+  ) |
+  (
+    value=string()
+  )
   { return value; }
 }
 
@@ -97,40 +110,49 @@ String string() :
     String image = token.image;
     if (image.length() <= 2) {
       return "";
+    } else { 
+      return image.substring(1, image.length() - 1);
     }
-    return image.substring(1, image.length() - 1);
   }
 }
 
-
-/*
 List<Object> array() :
 {
-  List<Object> array = new ArrayList<>();
+  List<Object> array = new ArrayList<Object>();
   Object element;
 }
 {
-  <SQUARE_BRACKET_OPEN>
-	element = element();
+  < BRACKET_OPEN >
+	element = element()
 	{
 	  array.add(element);
-	  value = null;
 	}
 	(
-	  <COMMA>
-	  element = element();
+	  < COMMA >
+	  element = element()
 	    {
 	      array.add(element);
-	      value = null;
 	    }
 	)*
-  <SQUARE_BRACKET_CLOSE>
+  < BRACKET_CLOSE >
+  { return array; }
 }
 
-/*JsonObject object() :
+Map<String, Object> object() :
 {
-  
+  Map<String, Object> object = new LinkedHashMap<String, Object>();
+  String key;
+  Object value;
 }
 {
-
-}*/
+  < BRACE_OPEN >
+  key = string() < COLON > value = element()
+  { object.put(key, value); }
+  (
+    < COMMA >
+    key = string() < COLON > value = element()
+    { object.put(key, value); }
+  )*
+  < BRACE_CLOSE >
+  { return object; }
+}
