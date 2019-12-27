@@ -4,24 +4,33 @@ options
 }
 
 PARSER_BEGIN(JsonParser)
+
 package com.tomallton.blox.jsonparser;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 public class JsonParser {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws ParseException {
     // https://github.com/RobertFischer/json-parser/blob/master/src/main/javacc/com/smokejumperit/json/parser/JSONParser.jj
     JsonParser parser = new JsonParser(System.in);
     parser.parse();
   }
 
 }
+
 PARSER_END(JsonParser)
 
 TOKEN :
 {
   < #QUOTE: "\"" > |
   < #SQUARE_BRACKET_OPEN: "[" > |
-  < #SQUARE_BRACKET_CLOSE: "]" >
+  < #SQUARE_BRACKET_CLOSE: "]" > |
+  < #DIGIT: ["0"-"9"] > |
+  < INTEGER: ("-")? (<DIGIT>)+ > |
+  < DECIMAL: ("-")? (<DIGIT>)* "." (<DIGIT>)+ > |
+  < STRING: < QUOTE > (~["\""])+ < QUOTE > >
 }
 
 SKIP :
@@ -32,52 +41,69 @@ SKIP :
 | "\n"
 }
 
-void parse() throws ParseException :
+Object parse() throws ParseException :
 {
-  JsonElement element;
+  Object json;
 }
 {
-  element=element()
-}
-
-JsonElement element() : 
-{
-
-}
-{
-  value() | array() | object()
+  json=element()
+  { return json; }
 }
 
-JsonValue value() :
+Object element() : 
 {
-  
+  Object element;
 }
 {
-  < NUMBER > | < STRING >
+  element=value()/* | array() | object()*/
+  { return element; }
 }
+
+Object value() :
+{
+  Object value;
+}
+{
+  value=number()
+  { return value; }
+}
+
+Number number() :
+{
+  Token token;
+}
+{
+  (
+    token = < INTEGER >
+    {
+      return new BigInteger(token.image);
+    }
+  ) |
+  (
+    token = < DECIMAL >
+    {
+      return new BigDecimal(token.image);
+    }
+  ) 
+}
+
 
 String string() :
 {
-  StringBuilder builder = new StringBuilder();
 }
 {
-  (<QUOTE> (getChar(builder))* <QUOTE>)
+  < STRING >
   {
-    return builder.toString();
+    String image = token.image;
+    if (image.length() <= 2) {
+      return "";
+    }
+    return image.substring(1, image.length() - 1);
   }
 }
 
-void getChar(StringBuilder builder) :
-{
-  Token t;
-}
-{
-  (t = <CHAR>)
-  {
-	builder.append(t.image.charAt(0));
-  }
-}
 
+/*
 List<Object> array() :
 {
   List<Object> array = new ArrayList<>();
@@ -90,7 +116,8 @@ List<Object> array() :
 	  array.add(element);
 	  value = null;
 	}
-	(	  <COMMA>
+	(
+	  <COMMA>
 	  element = element();
 	    {
 	      array.add(element);
