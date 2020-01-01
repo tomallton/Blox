@@ -102,14 +102,7 @@ public class JsonParser implements JsonParserConstants {
   static final public String string() throws ParseException {
     jj_consume_token(STRING);
     String image = token.image;
-    if (image.length() <= 2)
-    {
-      {if (true) return "";}
-    }
-    else
-    {
-      {if (true) return image.substring(1, image.length() - 1);}
-    }
+    {if (true) return image.substring(1, image.length() - 1);}
     throw new Error("Missing return statement in function");
   }
 

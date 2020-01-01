@@ -45,7 +45,7 @@ TOKEN :
 | 
   < DECIMAL : ("-")? (< DIGIT >)* "." (< DIGIT >)+ >
 | 
-  < STRING : < QUOTE > (~[ "\"" ])* < QUOTE > >
+  < STRING : < QUOTE > (~["\""])* < QUOTE > >
 | 
   < TRUE : "true" >
 | 
@@ -137,14 +137,7 @@ String string() :
   < STRING >
   {
     String image = token.image;
-    if (image.length() <= 2)
-    {
-      return "";
-    }
-    else
-    {
-      return image.substring(1, image.length() - 1);
-    }
+    return image.substring(1, image.length() - 1);
   }
 }
 
