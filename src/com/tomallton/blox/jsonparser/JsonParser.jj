@@ -5,12 +5,14 @@ options
 
 PARSER_BEGIN(JsonParser)
 package com.tomallton.blox.jsonparser;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+import com.tomallton.blox.Entry;
 
 public class JsonParser
 {
@@ -192,9 +194,9 @@ List < Object > array() :
   }
 }
 
-Map < String, Object > object() :
+List < Entry < String, Object > > object() :
 {
-  Map < String, Object > object = new LinkedHashMap < String, Object > ();
+  List < Entry < String, Object > > object = new LinkedList < Entry < String, Object > > ();
   String key;
   Object value;
 }
@@ -203,13 +205,13 @@ Map < String, Object > object() :
   (
     key = string() < COLON > value = element()
     {
-      object.put(key, value);
+      object.add(Entry.of(key, value));
     }
     (
       < COMMA > 
       key = string() < COLON > value = element()
       {
-        object.put(key, value);
+        object.add(Entry.of(key, value));
       }
     )*
   )?
