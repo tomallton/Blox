@@ -138,6 +138,9 @@ static private int jjMoveStringLiteralDfa4_0(long old0, long active0)
    return jjStartNfa_0(3, active0);
 }
 static final long[] jjbitVec0 = {
+   0xfffffffffffffffeL, 0xffffffffffffffffL, 0xffffffffffffffffL, 0xffffffffffffffffL
+};
+static final long[] jjbitVec2 = {
    0x0L, 0x0L, 0xffffffffffffffffL, 0xffffffffffffffffL
 };
 static private int jjMoveNfa_0(int startState, int curPos)
@@ -233,6 +236,9 @@ static private int jjMoveNfa_0(int startState, int curPos)
       }
       else
       {
+         int hiByte = (int)(curChar >> 8);
+         int i1 = hiByte >> 6;
+         long l1 = 1L << (hiByte & 077);
          int i2 = (curChar & 0xff) >> 6;
          long l2 = 1L << (curChar & 077);
          do
@@ -240,7 +246,7 @@ static private int jjMoveNfa_0(int startState, int curPos)
             switch(jjstateSet[--i])
             {
                case 3:
-                  if ((jjbitVec0[i2] & l2) != 0L)
+                  if (jjCanMove_0(hiByte, i1, i2, l1, l2))
                      jjAddStates(3, 4);
                   break;
                default : break;
@@ -263,6 +269,18 @@ static private int jjMoveNfa_0(int startState, int curPos)
 static final int[] jjnextStates = {
    6, 7, 0, 3, 4, 
 };
+private static final boolean jjCanMove_0(int hiByte, int i1, int i2, long l1, long l2)
+{
+   switch(hiByte)
+   {
+      case 0:
+         return ((jjbitVec2[i2] & l2) != 0L);
+      default :
+         if ((jjbitVec0[i1] & l1) != 0L)
+            return true;
+         return false;
+   }
+}
 
 /** Token literal values. */
 public static final String[] jjstrLiteralImages = {
@@ -279,25 +297,25 @@ static final long[] jjtoToken = {
 static final long[] jjtoSkip = {
    0x3c000L, 
 };
-static protected SimpleCharStream input_stream;
+static protected JavaCharStream input_stream;
 static private final int[] jjrounds = new int[9];
 static private final int[] jjstateSet = new int[18];
 static protected char curChar;
 /** Constructor. */
-public JsonParserTokenManager(SimpleCharStream stream){
+public JsonParserTokenManager(JavaCharStream stream){
    if (input_stream != null)
       throw new TokenMgrError("ERROR: Second call to constructor of static lexer. You must use ReInit() to initialize the static variables.", TokenMgrError.STATIC_LEXER_ERROR);
    input_stream = stream;
 }
 
 /** Constructor. */
-public JsonParserTokenManager(SimpleCharStream stream, int lexState){
+public JsonParserTokenManager(JavaCharStream stream, int lexState){
    this(stream);
    SwitchTo(lexState);
 }
 
 /** Reinitialise parser. */
-static public void ReInit(SimpleCharStream stream)
+static public void ReInit(JavaCharStream stream)
 {
    jjmatchedPos = jjnewStateCnt = 0;
    curLexState = defaultLexState;
@@ -313,7 +331,7 @@ static private void ReInitRounds()
 }
 
 /** Reinitialise parser. */
-static public void ReInit(SimpleCharStream stream, int lexState)
+static public void ReInit(JavaCharStream stream, int lexState)
 {
    ReInit(stream);
    SwitchTo(lexState);

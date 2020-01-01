@@ -204,7 +204,7 @@ public class JsonParser implements JsonParserConstants {
   static private boolean jj_initialized_once = false;
   /** Generated Token Manager. */
   static public JsonParserTokenManager token_source;
-  static SimpleCharStream jj_input_stream;
+  static JavaCharStream jj_input_stream;
   /** Current token. */
   static public Token token;
   /** Next token. */
@@ -233,7 +233,7 @@ public class JsonParser implements JsonParserConstants {
       throw new Error();
     }
     jj_initialized_once = true;
-    try { jj_input_stream = new SimpleCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
+    try { jj_input_stream = new JavaCharStream(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
     token_source = new JsonParserTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
@@ -264,7 +264,7 @@ public class JsonParser implements JsonParserConstants {
       throw new Error();
     }
     jj_initialized_once = true;
-    jj_input_stream = new SimpleCharStream(stream, 1, 1);
+    jj_input_stream = new JavaCharStream(stream, 1, 1);
     token_source = new JsonParserTokenManager(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
