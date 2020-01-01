@@ -17,7 +17,6 @@ import java.util.Map;
 public class JsonParser {
 
   public static void main(String[] args) throws ParseException {
-    // https://github.com/RobertFischer/json-parser/blob/master/src/main/javacc/com/smokejumperit/json/parser/JSONParser.jj
     JsonParser parser = new JsonParser(System.in);
     parser.parse();
   }
@@ -54,7 +53,7 @@ Object parse() :
   Object json;
 }
 {
-  json=element()
+  (json=array() | json=object())
   { return json; }
 }
 
@@ -63,7 +62,7 @@ Object element() :
   Object element;
 }
 {
-  element=value() | element=array() | element=object()
+  (element=value() | element=array() | element=object())
   { return element; }
 }
 
@@ -72,12 +71,12 @@ Object value() :
   Object value;
 }
 {
-  (
+  ((
     value=number()
   ) |
   (
     value=string()
-  )
+  ))
   { return value; }
 }
 
