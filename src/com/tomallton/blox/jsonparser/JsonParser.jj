@@ -4,9 +4,7 @@ options
 }
 
 PARSER_BEGIN(JsonParser)
-
 package com.tomallton.blox.jsonparser;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -14,30 +12,44 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JsonParser {
-
-  public static void main(String[] args) throws ParseException {
+public class JsonParser
+{
+  public static void main(String [] args) throws ParseException
+  {
     JsonParser parser = new JsonParser(System.in);
     parser.parse();
   }
-
 }
 
 PARSER_END(JsonParser)
 
 TOKEN :
 {
-  < #QUOTE: "\"" > |
-  < #DIGIT: ["0"-"9"] > |
-  < COMMA: "," > |
-  < COLON: ":" > |
-  < BRACKET_OPEN: "[" > |
-  < BRACKET_CLOSE: "]" > |
-  < BRACE_OPEN: "{" > |
-  < BRACE_CLOSE: "}" > |
-  < INTEGER: ("-")? (<DIGIT>)+ > |
-  < DECIMAL: ("-")? (<DIGIT>)* "." (<DIGIT>)+ > |
-  < STRING: < QUOTE > (~["\""])+ < QUOTE > >
+  < #QUOTE : "\"" >
+| 
+  < #DIGIT : [ "0"-"9" ] >
+| 
+  < COMMA : "," >
+| 
+  < COLON : ":" >
+| 
+  < BRACKET_OPEN : "[" >
+| 
+  < BRACKET_CLOSE : "]" >
+| 
+  < BRACE_OPEN : "{" >
+| 
+  < BRACE_CLOSE : "}" >
+| 
+  < INTEGER : ("-")? (< DIGIT >)+ >
+| 
+  < DECIMAL : ("-")? (< DIGIT >)* "." (< DIGIT >)+ >
+| 
+  < STRING : < QUOTE > (~[ "\"" ])* < QUOTE > >
+| 
+  < TRUE : "true" >
+| 
+  < FALSE : "false" >
 }
 
 SKIP :
@@ -53,17 +65,28 @@ Object parse() :
   Object json;
 }
 {
-  (json=array() | json=object())
-  { return json; }
+  (
+    json = array()
+  | json = object()
+  )
+  {
+    return json;
+  }
 }
 
-Object element() : 
+Object element() :
 {
   Object element;
 }
 {
-  (element=value() | element=array() | element=object())
-  { return element; }
+  (
+    element = value()
+  | element = array()
+  | element = object()
+  )
+  {
+    return element;
+  }
 }
 
 Object value() :
@@ -71,13 +94,20 @@ Object value() :
   Object value;
 }
 {
-  ((
-    value=number()
-  ) |
   (
-    value=string()
-  ))
-  { return value; }
+    (
+      value = number()
+    )
+  |
+    (
+      value = string()
+    )
+  | 
+    value = booleanValue()
+  )
+  {
+    return value;
+  }
 }
 
 Number number() :
@@ -90,15 +120,15 @@ Number number() :
     {
       return new BigInteger(token.image);
     }
-  ) |
+  )
+|
   (
     token = < DECIMAL >
     {
       return new BigDecimal(token.image);
     }
-  ) 
+  )
 }
-
 
 String string() :
 {
@@ -107,51 +137,91 @@ String string() :
   < STRING >
   {
     String image = token.image;
-    if (image.length() <= 2) {
+    if (image.length() <= 2)
+    {
       return "";
-    } else { 
+    }
+    else
+    {
       return image.substring(1, image.length() - 1);
     }
   }
 }
 
-List<Object> array() :
+boolean booleanValue() :
 {
-  List<Object> array = new ArrayList<Object>();
+  Boolean value;
+}
+{
+  (
+    (
+    < TRUE >
+    {
+      value = true;
+    }
+    )
+  | 
+    (
+    < FALSE >
+    {
+      value = false;
+    }
+    )
+  )
+  {
+    return value;
+  }
+}
+
+List < Object > array() :
+{
+  List < Object > array = new ArrayList < Object > ();
   Object element;
 }
 {
   < BRACKET_OPEN >
-	element = element()
-	{
-	  array.add(element);
-	}
-	(
-	  < COMMA >
-	  element = element()
-	    {
-	      array.add(element);
-	    }
-	)*
+  (
+    element = element()
+    {
+      array.add(element);
+    }
+    (
+      < COMMA > 
+      element = element()
+      {
+        array.add(element);
+      }
+    )*
+  )?
   < BRACKET_CLOSE >
-  { return array; }
+  {
+    return array;
+  }
 }
 
-Map<String, Object> object() :
+Map < String, Object > object() :
 {
-  Map<String, Object> object = new LinkedHashMap<String, Object>();
+  Map < String, Object > object = new LinkedHashMap < String, Object > ();
   String key;
   Object value;
 }
 {
   < BRACE_OPEN >
-  key = string() < COLON > value = element()
-  { object.put(key, value); }
   (
-    < COMMA >
     key = string() < COLON > value = element()
-    { object.put(key, value); }
-  )*
+    {
+      object.put(key, value);
+    }
+    (
+      < COMMA > 
+      key = string() < COLON > value = element()
+      {
+        object.put(key, value);
+      }
+    )*
+  )?
   < BRACE_CLOSE >
-  { return object; }
+  {
+    return object;
+  }
 }
