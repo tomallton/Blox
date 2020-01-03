@@ -2,7 +2,7 @@ package com.tomallton.blox;
 
 import java.io.ByteArrayInputStream;
 
-import com.tomallton.blox.jsonparser.JsonParser;
+import com.tomallton.blox.parser.Parser;
 
 public class Test {
 
@@ -11,7 +11,7 @@ public class Test {
     }
 
     static void print(String s) throws Exception {
-        System.out.println(new JsonParser(new ByteArrayInputStream(s.getBytes())).parse());
+        System.out.println(new Parser(new ByteArrayInputStream(s.getBytes())).parse());
     }
 
 }

@@ -1,10 +1,12 @@
 options
 {
+  static = false;
+
   JAVA_UNICODE_ESCAPE = true;
 }
 
-PARSER_BEGIN(JsonParser)
-package com.tomallton.blox.jsonparser;
+PARSER_BEGIN(Parser)
+package com.tomallton.blox.parser;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -12,18 +14,18 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import com.tomallton.blox.Entry;
+import com.tomallton.blox.parser.Entry;
 
-public class JsonParser
+public class Parser
 {
   public static void main(String [] args) throws ParseException
   {
-    JsonParser parser = new JsonParser(System.in);
+    Parser parser = new Parser(System.in);
     parser.parse();
   }
 }
 
-PARSER_END(JsonParser)
+PARSER_END(Parser)
 
 TOKEN :
 {

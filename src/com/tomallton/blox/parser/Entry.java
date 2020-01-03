@@ -1,4 +1,4 @@
-package com.tomallton.blox;
+package com.tomallton.blox.parser;
 
 import java.util.Objects;
 
