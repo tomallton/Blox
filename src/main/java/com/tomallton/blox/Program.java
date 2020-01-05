@@ -19,5 +19,4 @@ public class Program {
         typeToBlock.putIfAbsent(block.getClass(), new HashSet<>());
         typeToBlock.get(block.getClass()).add(block);
     }
-
 }

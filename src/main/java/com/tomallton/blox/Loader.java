@@ -126,7 +126,7 @@ public class Loader {
             }
 
             try {
-                blockClass.getConstructor(parameters.stream().map(Object::getClass).toArray(len -> new Class<?>[0])).newInstance(parameters);
+                blockClass.getConstructor(parameters.stream().map(Object::getClass).toArray(len -> new Class<?>[len])).newInstance(parameters.toArray(new Object[parameters.size()]));
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
