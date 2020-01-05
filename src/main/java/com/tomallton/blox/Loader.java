@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,7 +73,7 @@ public class Loader {
         Program program = new Program();
         List<Entry<String, Object>> objects = (LinkedList<Entry<String, Object>>) data;
 
-        for (Entry<String, Object> entry : objects) {
+        blocks: for (Entry<String, Object> entry : objects) {
             Class<?> blockClass = blockTypes.get(entry.getKey().toLowerCase());
 
             if (blockClass == null) {
@@ -96,10 +95,13 @@ public class Loader {
                 }
             } else if (entry.getValue() instanceof LinkedList) {
                 // object
-                Map<String, Object> object = ((List<Entry<String, Object>>) entry.getValue()).stream().collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Entry::getValue));
+                Map<String, Object> object = new HashMap<>();
+                for (Entry<String, Object> keyValue : (List<Entry<String, Object>>) entry.getValue()) {
+                    object.putIfAbsent(keyValue.getKey().toLowerCase(), extractParameter(keyValue.getValue()));
+                }
 
                 constructors: for (Map.Entry<Constructor<?>, List<String>> constructor : constructors.get(blockClass).entrySet()) {
-                    if (Collections.disjoint(object.keySet(), constructor.getValue())) {
+                    if (!object.keySet().equals(constructor.getValue().stream().collect(Collectors.toSet()))) {
                         continue;
                     }
 
@@ -111,17 +113,20 @@ public class Loader {
                         if (!suppliedParameter.getClass().equals(parameterTypes[i])) {
                             continue constructors;
                         }
+
+                        parameters.add(suppliedParameter);
                     }
 
                     try {
-                        program.addBlock((Block) constructor.getKey().newInstance(parameters));
+                        program.addBlock((Block) constructor.getKey().newInstance(parameters.toArray(new Object[parameters.size()])));
                     } catch (Exception exception) {
                         exception.printStackTrace();
                     }
 
-                    break;
+                    continue blocks;
                 }
 
+                System.err.println("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + object);
                 continue;
             }
 
