@@ -21,18 +21,23 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.reflections.Reflections;
+import org.reflections.scanners.ResourcesScanner;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 
 import com.tomallton.blox.parser.Entry;
 import com.tomallton.blox.parser.Parser;
 import com.tomallton.blox.util.FileUtils;
 
-public class Loader {
+public class Loader<C> {
 
     private File folder;
 
-    private final Map<String, Class<? extends Block>> blockTypes = new HashMap<>();
+    private final Map<String, Class<?>> blockTypes = new HashMap<>();
 
-    private final Map<Class<? extends Block>, Map<Constructor<?>, List<String>>> constructors = new HashMap<>();
+    private final Map<Class<?>, Map<Constructor<?>, List<String>>> constructors = new HashMap<>();
 
     public void load() throws IllegalStateException {
         if (folder == null) {
@@ -70,7 +75,7 @@ public class Loader {
             return;
         }
 
-        Program program = new Program();
+        Program<C> program = new Program<C>();
         List<Entry<String, Object>> objects = (LinkedList<Entry<String, Object>>) data;
 
         blocks: for (Entry<String, Object> entry : objects) {
@@ -118,8 +123,9 @@ public class Loader {
                     }
 
                     try {
-                        program.addBlock((Block) constructor.getKey().newInstance(parameters.toArray(new Object[parameters.size()])));
+                        program.addBlock(constructor.getKey().newInstance(parameters.toArray(new Object[parameters.size()])));
                     } catch (Exception exception) {
+                        System.err.println("Error initialising " + blockClass.getSimpleName());
                         exception.printStackTrace();
                     }
 
@@ -148,6 +154,7 @@ public class Loader {
             for (int i = 0; i < list.size(); i++) {
                 list.set(i, extractParameter(list.get(i)));
             }
+            return list;
         } else if (parameter instanceof LinkedList) {
 
         }
@@ -170,10 +177,21 @@ public class Loader {
     }
 
     public void addBlockType(String packageName) {
-        new Reflections(packageName).getSubTypesOf(Block.class).forEach(this::addBlockType);
+        List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();
+        classLoadersList.add(ClasspathHelper.contextClassLoader());
+        classLoadersList.add(ClasspathHelper.staticClassLoader());
+
+        ConfigurationBuilder config = new ConfigurationBuilder();
+        // don't exclude Object.class
+        config.setScanners(new SubTypesScanner(false), new ResourcesScanner());
+        // filter package
+        config.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
+        config.setUrls(ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])));
+
+        new Reflections(config).getSubTypesOf(Object.class).forEach(this::addBlockType);
     }
 
-    public void addBlockType(Class<? extends Block> blockType) {
+    public void addBlockType(Class<?> blockType) {
         blockTypes.put(blockType.getSimpleName().toLowerCase(), blockType);
 
         Map<Constructor<?>, List<String>> constructors = new HashMap<>();
