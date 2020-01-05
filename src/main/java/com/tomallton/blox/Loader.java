@@ -39,6 +39,8 @@ public class Loader<C> {
 
     private final Map<Class<?>, Map<Constructor<?>, List<String>>> constructors = new HashMap<>();
 
+    private final Map<Class<?>, Class<?>> classCasts = new HashMap<>(Map.of(ArrayList.class, List.class, LinkedList.class, List.class, Double.class, double.class, Integer.class, int.class));
+
     public void load() throws IllegalStateException {
         if (folder == null) {
             throw new IllegalStateException("Folder not set.");
@@ -137,7 +139,8 @@ public class Loader<C> {
             }
 
             try {
-                blockClass.getConstructor(parameters.stream().map(Object::getClass).toArray(len -> new Class<?>[len])).newInstance(parameters.toArray(new Object[parameters.size()]));
+                blockClass.getConstructor(parameters.stream().map(Object::getClass).map(c -> classCasts.getOrDefault(c, c)).toArray(len -> new Class<?>[len]))
+                        .newInstance(parameters.toArray(new Object[parameters.size()]));
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
@@ -147,7 +150,7 @@ public class Loader<C> {
     private Object extractParameter(Object parameter) {
         Object parameterValue = extractValue(parameter);
         if (parameterValue != null) {
-            return parameter;
+            return parameterValue;
         } else if (parameter instanceof ArrayList) {
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) parameter;
@@ -155,8 +158,6 @@ public class Loader<C> {
                 list.set(i, extractParameter(list.get(i)));
             }
             return list;
-        } else if (parameter instanceof LinkedList) {
-
         }
         throw new IllegalArgumentException("Invalid parameter " + parameter);
     }
@@ -170,50 +171,6 @@ public class Loader<C> {
             return ((BigDecimal) value).doubleValue();
         }
         return null;
-    }
-
-    public void setFolder(File folder) {
-        this.folder = folder;
-    }
-
-    public void addBlockType(String packageName) {
-        List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();
-        classLoadersList.add(ClasspathHelper.contextClassLoader());
-        classLoadersList.add(ClasspathHelper.staticClassLoader());
-
-        ConfigurationBuilder config = new ConfigurationBuilder();
-        // don't exclude Object.class
-        config.setScanners(new SubTypesScanner(false), new ResourcesScanner());
-        // filter package
-        config.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
-        config.setUrls(ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])));
-
-        new Reflections(config).getSubTypesOf(Object.class).forEach(this::addBlockType);
-    }
-
-    public void addBlockType(Class<?> blockType) {
-        blockTypes.put(blockType.getSimpleName().toLowerCase(), blockType);
-
-        Map<Constructor<?>, List<String>> constructors = new HashMap<>();
-        for (Constructor<?> constructor : blockType.getConstructors()) {
-            try {
-                List<String> parameterNames = getConstructorParameterNames(constructor).stream().map(String::toLowerCase).collect(Collectors.toList());
-
-                for (int i = 0; i < parameterNames.size(); i++) {
-                    for (int j = 0; j < parameterNames.size(); j++) {
-                        if (i != j && parameterNames.get(i).equals(parameterNames.get(j))) {
-                            throw new IllegalArgumentException("Block " + blockType + " has a constructor with two parameters named the same (but with different case)");
-                        }
-                    }
-                }
-
-                constructors.put(constructor, parameterNames);
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-        }
-
-        this.constructors.put(blockType, constructors);
     }
 
     private List<String> getConstructorParameterNames(Constructor<?> constructor) throws IOException {
@@ -257,4 +214,55 @@ public class Loader<C> {
         return null;
     }
 
+    public void setFolder(File folder) {
+        this.folder = folder;
+    }
+
+    public void addBlockType(String packageName) {
+        List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();
+        classLoadersList.add(ClasspathHelper.contextClassLoader());
+        classLoadersList.add(ClasspathHelper.staticClassLoader());
+
+        ConfigurationBuilder config = new ConfigurationBuilder();
+        // don't exclude Object.class
+        config.setScanners(new SubTypesScanner(false), new ResourcesScanner());
+        // filter package
+        config.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
+        config.setUrls(ClasspathHelper.forJavaClassPath());
+
+        new Reflections(config).getSubTypesOf(Object.class).forEach(this::addBlockType);
+    }
+
+    public void addBlockType(Class<?> blockType) {
+        blockTypes.put(blockType.getSimpleName().toLowerCase(), blockType);
+
+        Map<Constructor<?>, List<String>> constructors = new HashMap<>();
+        for (Constructor<?> constructor : blockType.getConstructors()) {
+            try {
+                List<String> parameterNames = getConstructorParameterNames(constructor).stream().map(String::toLowerCase).collect(Collectors.toList());
+
+                for (int i = 0; i < parameterNames.size(); i++) {
+                    for (int j = 0; j < parameterNames.size(); j++) {
+                        if (i != j && parameterNames.get(i).equals(parameterNames.get(j))) {
+                            throw new IllegalArgumentException("Block " + blockType + " has a constructor with two parameters named the same (but with different case)");
+                        }
+                    }
+                }
+
+                constructors.put(constructor, parameterNames);
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        this.constructors.put(blockType, constructors);
+    }
+
+    public void addCast(Class<?> from, Class<?> to) {
+        classCasts.put(from, to);
+    }
+
+    public void removeCast(Class<?> from) {
+        classCasts.remove(from);
+    }
 }
