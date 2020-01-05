@@ -28,7 +28,7 @@ import com.tomallton.blox.parser.Parser;
 import com.tomallton.blox.util.FileUtils;
 
 public class Loader {
-    
+
     private File folder;
 
     private final Map<String, Class<? extends Block>> blockTypes = new HashMap<>();
@@ -89,14 +89,14 @@ public class Loader {
             if (value != null) {
                 // value (string, number, or boolean)
                 parameters.add(value);
-            } else if (value instanceof ArrayList) {
+            } else if (entry.getValue() instanceof ArrayList) {
                 // array
-                for (Object parameter : (List<Object>) value) {
+                for (Object parameter : (List<Object>) entry.getValue()) {
                     parameters.add(extractParameter(parameter));
                 }
-            } else if (value instanceof LinkedList) {
+            } else if (entry.getValue() instanceof LinkedList) {
                 // object
-                Map<String, Object> object = ((List<Entry<String, Object>>) value).stream().collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Entry::getValue));
+                Map<String, Object> object = ((List<Entry<String, Object>>) entry.getValue()).stream().collect(Collectors.toMap(e -> e.getKey().toLowerCase(), Entry::getValue));
 
                 constructors: for (Map.Entry<Constructor<?>, List<String>> constructor : constructors.get(blockClass).entrySet()) {
                     if (Collections.disjoint(object.keySet(), constructor.getValue())) {
