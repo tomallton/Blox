@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.ClassReader;
@@ -33,18 +34,16 @@ import com.tomallton.blox.util.FileUtils;
 
 public class Loader<C> {
 
-    private File folder;
-
     private final Map<String, Class<?>> blockTypes = new HashMap<>();
 
     private final Map<Class<?>, Map<Constructor<?>, List<String>>> constructors = new HashMap<>();
 
     private final Map<Class<?>, Class<?>> classCasts = new HashMap<>(Map.of(ArrayList.class, List.class, LinkedList.class, List.class, Double.class, double.class, Integer.class, int.class));
 
-    public void load() throws IllegalStateException {
-        if (folder == null) {
-            throw new IllegalStateException("Folder not set.");
-        } else if (!folder.isDirectory()) {
+    public void load(File folder) throws IllegalStateException {
+        Objects.requireNonNull(folder);
+
+        if (!folder.isDirectory()) {
             throw new IllegalStateException(folder.getPath() + " not a folder.");
         }
 
@@ -159,11 +158,11 @@ public class Loader<C> {
             }
             return list;
         }
-        throw new IllegalArgumentException("Invalid parameter " + parameter);
+        throw new IllegalArgumentException("Invalid parameter " + parameter + " (" + parameter.getClass() + ")");
     }
 
     private Object extractValue(Object value) {
-        if (value instanceof String) {
+        if (value instanceof String || value instanceof Integer || value instanceof Double) {
             return value;
         } else if (value instanceof BigInteger) {
             return ((BigInteger) value).intValue();
@@ -212,10 +211,6 @@ public class Loader<C> {
         }
 
         return null;
-    }
-
-    public void setFolder(File folder) {
-        this.folder = folder;
     }
 
     public void addBlockType(String packageName) {
