@@ -34,8 +34,45 @@ public class Program<C> {
         return (Set<B>) typeToBlock.get(blockType);
     }
 
-    public void run(C client) {
+    public void enter(C client) {
+        exit(client);
 
+        if (!blocks.isEmpty()) {
+            if (blocks.get(0).add(client)) {
+                blocks.get(0).onEnterProgram(client);
+            }
+        }
+    }
+
+    public void exit(C client) {
+        for (ClientBlock<C> block : blocks) {
+            if (block.remove(client)) {
+                block.onExitProgram(client);
+            }
+        }
+    }
+
+    public void progress(C client) {
+        for (int i = 0; i < blocks.size(); i++) {
+            if (blocks.get(i).remove(client)) {
+                if (i + 1 < blocks.size()) {
+                    blocks.get(i + 1).add(client);
+                } else {
+                    blocks.get(i).onExitProgram(client);
+                }
+                return;
+            }
+        }
+        enter(client);
+    }
+
+    public boolean has(C client) {
+        for (ClientBlock<C> block : blocks) {
+            if (block.has(client)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
