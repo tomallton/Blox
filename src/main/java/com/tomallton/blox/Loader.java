@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.ClassReader;
@@ -38,7 +39,8 @@ public class Loader<C> {
 
     private final Map<Class<?>, Map<Constructor<?>, List<String>>> constructors = new HashMap<>();
 
-    private final Map<Class<?>, Class<?>> classCasts = new HashMap<>(Map.of(ArrayList.class, List.class, LinkedList.class, List.class, Double.class, double.class, Integer.class, int.class));
+    private final Map<Class<?>, Class<?>> classCasts = new HashMap<>(
+            Map.of(ArrayList.class, List.class, LinkedList.class, List.class, Double.class, double.class, Integer.class, int.class, Boolean.class, boolean.class));
 
     public void load(File folder) throws IllegalStateException {
         Objects.requireNonNull(folder);
@@ -52,7 +54,7 @@ public class Loader<C> {
 
     private void loadPrograms(Collection<File> files) {
         for (File file : files) {
-            if (file.getName().endsWith(".blox")) {
+            if (file.getName().endsWith(".blox") || file.getName().endsWith(".json")) {
                 loadProgram(file);
             }
         }
@@ -79,8 +81,9 @@ public class Loader<C> {
         Program<C> program = new Program<C>();
         List<Entry<String, Object>> objects = (LinkedList<Entry<String, Object>>) data;
 
-        blocks: for (Entry<String, Object> entry : objects) {
+        for (Entry<String, Object> entry : objects) {
             Class<?> blockClass = blockTypes.get(entry.getKey().toLowerCase());
+            Constructor<?> constructor = null;
 
             if (blockClass == null) {
                 System.err.println("Block '" + entry.getKey() + "' does not exist");
@@ -106,41 +109,91 @@ public class Loader<C> {
                     object.putIfAbsent(keyValue.getKey().toLowerCase(), extractParameter(keyValue.getValue()));
                 }
 
-                constructors: for (Map.Entry<Constructor<?>, List<String>> constructor : constructors.get(blockClass).entrySet()) {
-                    if (!object.keySet().equals(constructor.getValue().stream().collect(Collectors.toSet()))) {
+                constructors: for (Map.Entry<Constructor<?>, List<String>> constructorEntry : constructors.get(blockClass).entrySet()) {
+                    if (!object.keySet().equals(constructorEntry.getValue().stream().collect(Collectors.toSet()))) {
                         continue;
                     }
 
-                    Class<?>[] parameterTypes = constructor.getKey().getParameterTypes();
+                    Class<?>[] parameterTypes = constructorEntry.getKey().getParameterTypes();
 
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        Object suppliedParameter = extractParameter(object.get(constructor.getValue().get(i)));
+                        Object suppliedParameter = extractParameter(object.get(constructorEntry.getValue().get(i)));
 
-                        if (!suppliedParameter.getClass().equals(parameterTypes[i])) {
+                        if (!classCasts.getOrDefault(suppliedParameter.getClass(), suppliedParameter.getClass()).equals(parameterTypes[i])) {
                             continue constructors;
                         }
 
                         parameters.add(suppliedParameter);
                     }
 
-                    try {
-                        program.addBlock(constructor.getKey().newInstance(parameters.toArray(new Object[parameters.size()])));
-                    } catch (Exception exception) {
-                        System.err.println("Error initialising " + blockClass.getSimpleName());
-                        exception.printStackTrace();
-                    }
-
-                    continue blocks;
+                    constructor = constructorEntry.getKey();
+                    break;
                 }
 
-                System.err.println("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + object);
-                continue;
+                if (constructor == null) {
+                    System.err.println("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + object);
+                    continue;
+                }
             }
 
             try {
-                blockClass.getConstructor(parameters.stream().map(Object::getClass).map(c -> classCasts.getOrDefault(c, c)).toArray(len -> new Class<?>[len]))
-                        .newInstance(parameters.toArray(new Object[parameters.size()]));
+                if (constructor == null) {
+                    Function<Boolean, Constructor<?>> findConstructor = lenient -> {
+                        search: for (Constructor<?> c : blockClass.getConstructors()) {
+                            if (c.getParameterTypes().length != parameters.size()) {
+                                continue;
+                            }
+
+                            for (int i = 0; i < parameters.size(); i++) {
+                                Class<?> parameterClass = parameters.get(i).getClass();
+                                parameterClass = classCasts.getOrDefault(parameterClass, parameterClass);
+
+                                if (!parameterClass.equals(c.getParameterTypes()[i])) {
+                                    if (lenient) {
+                                        if (c.getParameterTypes()[i] == double.class) {
+                                            if (parameterClass == int.class) {
+                                                parameters.set(i, (double) ((int) parameters.get(i)));
+                                                continue;
+                                            }
+                                        } else if (c.getParameterTypes()[i] == float.class) {
+                                            if (parameterClass == int.class) {
+                                                parameters.set(i, (float) ((int) parameters.get(i)));
+                                                continue;
+                                            } else if (parameterClass == double.class) {
+                                                parameters.set(i, (float) ((double) parameters.get(i)));
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                    continue search;
+                                }
+                            }
+
+                            return c;
+                        }
+                        return null;
+                    };
+
+                    constructor = findConstructor.apply(false);
+
+                    if (constructor == null) {
+                        constructor = findConstructor.apply(true);
+
+                        if (constructor == null) {
+                            throw new InitilizationException();
+                        }
+                    }
+                }
+
+                Object block = constructor.newInstance(parameters.toArray(new Object[parameters.size()]));
+
+                if (block instanceof ClientBlock) {
+                    program.addBlock((ClientBlock<C>) block);
+                } else {
+                    program.addBlock(block);
+                }
             } catch (Exception exception) {
+                System.err.println("Error initialising " + blockClass.getSimpleName());
                 exception.printStackTrace();
             }
         }
@@ -162,9 +215,13 @@ public class Loader<C> {
     }
 
     private Object extractValue(Object value) {
-        if (value instanceof String || value instanceof Integer || value instanceof Double) {
+        if (value instanceof String || value instanceof Integer || value instanceof Double || value instanceof Boolean) {
             return value;
-        } else if (value instanceof BigInteger) {
+        } else if (value instanceof Integer) {
+            return ((Integer) value).intValue();
+        }
+
+        else if (value instanceof BigInteger) {
             return ((BigInteger) value).intValue();
         } else if (value instanceof BigDecimal) {
             return ((BigDecimal) value).doubleValue();
