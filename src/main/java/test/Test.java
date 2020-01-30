@@ -4,6 +4,15 @@ import java.io.File;
 
 import com.tomallton.blox.Loader;
 
+/**
+ * TODO:
+ * - Support Object...
+ * - Support Lists
+ * - Support nested stages
+ * - Support number conversions, lists, in object stages
+ * - Handle errors better
+ * - Create GUI
+ */
 public class Test {
 
     public static void main(String[] args) throws Exception {
