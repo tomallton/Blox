@@ -6,8 +6,6 @@ import com.tomallton.blox.Loader;
 
 /**
  * TODO:
- * - Support Object...
- * - Support Lists
  * - Support nested stages
  * - Support number conversions, lists, in object stages
  * - Handle errors better

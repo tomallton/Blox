@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -114,12 +115,12 @@ public class Loader<C> {
                         continue;
                     }
 
-                    Class<?>[] parameterTypes = constructorEntry.getKey().getParameterTypes();
+                    Class<?>[] paramTypes = constructorEntry.getKey().getParameterTypes();
 
-                    for (int i = 0; i < parameterTypes.length; i++) {
+                    for (int i = 0; i < paramTypes.length; i++) {
                         Object suppliedParameter = extractParameter(object.get(constructorEntry.getValue().get(i)));
 
-                        if (!classCasts.getOrDefault(suppliedParameter.getClass(), suppliedParameter.getClass()).equals(parameterTypes[i])) {
+                        if (!classCasts.getOrDefault(suppliedParameter.getClass(), suppliedParameter.getClass()).equals(paramTypes[i])) {
                             continue constructors;
                         }
 
@@ -140,32 +141,43 @@ public class Loader<C> {
                 if (constructor == null) {
                     Function<Boolean, Constructor<?>> findConstructor = lenient -> {
                         search: for (Constructor<?> c : blockClass.getConstructors()) {
-                            if (c.getParameterTypes().length != parameters.size()) {
+                            int numParameters = c.getParameterTypes().length;
+                            if (numParameters > 0 && c.getParameterTypes()[c.getParameterTypes().length - 1].isArray()) {
+                                numParameters--;
+                            }
+
+                            if (numParameters > parameters.size()) {
                                 continue;
                             }
 
-                            for (int i = 0; i < parameters.size(); i++) {
-                                Class<?> parameterClass = parameters.get(i).getClass();
-                                parameterClass = classCasts.getOrDefault(parameterClass, parameterClass);
+                            for (int i = 0; i < Math.min(c.getParameterTypes().length, parameters.size()); i++) {
+                                Class<?> requiredParameter = c.getParameterTypes()[i];
+                                boolean array = requiredParameter.isArray() && i == c.getParameterTypes().length - 1;
+                                requiredParameter = array ? requiredParameter.getComponentType() : requiredParameter;
 
-                                if (!parameterClass.equals(c.getParameterTypes()[i])) {
-                                    if (lenient) {
-                                        if (c.getParameterTypes()[i] == double.class) {
-                                            if (parameterClass == int.class) {
-                                                parameters.set(i, (double) ((int) parameters.get(i)));
-                                                continue;
-                                            }
-                                        } else if (c.getParameterTypes()[i] == float.class) {
-                                            if (parameterClass == int.class) {
-                                                parameters.set(i, (float) ((int) parameters.get(i)));
-                                                continue;
-                                            } else if (parameterClass == double.class) {
-                                                parameters.set(i, (float) ((double) parameters.get(i)));
-                                                continue;
+                                for (int j = i; j < (array ? parameters.size() : i + 1); j++) {
+                                    Class<?> suppliedParameter = parameters.get(j).getClass();
+                                    suppliedParameter = classCasts.getOrDefault(suppliedParameter, suppliedParameter);
+
+                                    if (!suppliedParameter.equals(requiredParameter)) {
+                                        if (lenient) {
+                                            if (requiredParameter == double.class) {
+                                                if (suppliedParameter == int.class) {
+                                                    parameters.set(j, (double) ((int) parameters.get(j)));
+                                                    continue;
+                                                }
+                                            } else if (requiredParameter == float.class) {
+                                                if (suppliedParameter == int.class) {
+                                                    parameters.set(j, (float) ((int) parameters.get(j)));
+                                                    continue;
+                                                } else if (suppliedParameter == double.class) {
+                                                    parameters.set(j, (float) ((double) parameters.get(j)));
+                                                    continue;
+                                                }
                                             }
                                         }
+                                        continue search;
                                     }
-                                    continue search;
                                 }
                             }
 
@@ -182,6 +194,53 @@ public class Loader<C> {
                         if (constructor == null) {
                             throw new InitilizationException();
                         }
+                    }
+                }
+
+                // fix array
+                Class<?>[] paramTypes = constructor.getParameterTypes();
+                if (paramTypes.length > 0 && paramTypes[paramTypes.length - 1].isArray()) {
+                    List<Object> typeArray = new ArrayList<>();
+
+                    if (parameters.size() >= paramTypes.length) {
+                        for (int i = paramTypes.length - 1; i < parameters.size(); i++) {
+                            typeArray.add(parameters.get(i));
+                        }
+                        for (int i = parameters.size() - 1; i >= paramTypes.length - 1; i--) {
+                            parameters.remove(i);
+                        }
+                    }
+
+                    Class<?> arrayTest = paramTypes[paramTypes.length - 1];
+
+                    if (arrayTest.getComponentType().isPrimitive()) {
+                        if (arrayTest.getComponentType().equals(boolean.class)) {
+                            boolean[] array = new boolean[typeArray.size()];
+                            for (int i = 0; i < typeArray.size(); i++) {
+                                array[i] = (boolean) typeArray.get(i);
+                            }
+                            parameters.add(array);
+                        } else if (arrayTest.getComponentType().equals(int.class)) {
+                            int[] array = new int[typeArray.size()];
+                            for (int i = 0; i < typeArray.size(); i++) {
+                                array[i] = (int) typeArray.get(i);
+                            }
+                            parameters.add(array);
+                        } else if (arrayTest.getComponentType().equals(float.class)) {
+                            float[] array = new float[typeArray.size()];
+                            for (int i = 0; i < typeArray.size(); i++) {
+                                array[i] = (float) typeArray.get(i);
+                            }
+                            parameters.add(array);
+                        } else if (arrayTest.getComponentType().equals(double.class)) {
+                            double[] array = new double[typeArray.size()];
+                            for (int i = 0; i < typeArray.size(); i++) {
+                                array[i] = (double) typeArray.get(i);
+                            }
+                            parameters.add(array);
+                        }
+                    } else {
+                        parameters.add(typeArray.toArray((Object[]) Array.newInstance(arrayTest.getComponentType(), typeArray.size())));
                     }
                 }
 
