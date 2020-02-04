@@ -7,7 +7,7 @@ import com.tomallton.blox.Loader;
 /**
  * TODO:
  * - Support nested stages
- * - Support number conversions, lists, in object stages
+ * - Support number conversions and lists in object stages
  * - Handle errors better
  * - Create GUI
  */

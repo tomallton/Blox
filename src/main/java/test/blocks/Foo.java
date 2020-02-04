@@ -1,9 +1,12 @@
 package test.blocks;
 
+import java.util.List;
+
 public class Foo {
 
-    public Foo(String name, Location loc) {
-        
+    public Foo(List<Double> cur) {
+        System.out.println(cur);
+//        System.out.println(String.join(",", cur.stream().map(Object::toString).collect(Collectors.toList())));
     }
 
 }
