@@ -50,4 +50,8 @@ public class ClientBlock<C> {
         }
         return false;
     }
+
+    public void setProgram(Program<C> program) {
+        this.program = program;
+    }
 }

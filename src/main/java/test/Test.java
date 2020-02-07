@@ -2,7 +2,7 @@ package test;
 
 import java.io.File;
 
-import com.tomallton.blox.Loader;
+import com.tomallton.blox.Blox;
 
 /**
  * TODO:
@@ -14,7 +14,7 @@ import com.tomallton.blox.Loader;
 public class Test {
 
     public static void main(String[] args) throws Exception {
-        Loader<ConsoleClient> loader = new Loader<>();
+        Blox<ConsoleClient> loader = new Blox<>();
         loader.addBlockType("test.blocks");
         loader.load(new File("/Users/Tom/Documents/GitHub/Blox/src/main/resources"));
     }

@@ -16,6 +16,7 @@ public class Program<C> {
         addBlock((Object) block);
 
         blocks.add(block);
+        block.setProgram(this);
     }
 
     public void addBlock(Object block) {
