@@ -24,6 +24,7 @@ public class ClientBlock<C> {
             program.progress(client);
         } else {
             remove(client);
+            onExitProgram(client);
         }
     }
 
@@ -36,8 +37,15 @@ public class ClientBlock<C> {
     }
 
     public boolean add(C client) {
+        boolean inProgram = program.has(client);
+
         if (clients.add(client)) {
             onEnter(client);
+            if (!inProgram) {
+                for (ClientBlock<C> block : program.getClientBlocks()) {
+                    block.onEnterProgram(client);
+                }
+            }
             return true;
         }
         return false;

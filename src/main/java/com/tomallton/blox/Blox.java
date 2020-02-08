@@ -62,7 +62,7 @@ public class Blox<C> {
     }
 
     @SuppressWarnings("unchecked")
-    private void loadProgram(File file) {
+    public void loadProgram(File file) {
         List<String> lines = FileUtils.readFile(file);
         Object data;
 
@@ -355,7 +355,7 @@ public class Blox<C> {
         return null;
     }
 
-    public void addBlockType(String packageName) {
+    public void addBlocks(String packageName) {
         List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();
         classLoadersList.add(ClasspathHelper.contextClassLoader());
         classLoadersList.add(ClasspathHelper.staticClassLoader());
@@ -367,10 +367,10 @@ public class Blox<C> {
         config.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
         config.setUrls(ClasspathHelper.forJavaClassPath());
 
-        new Reflections(config).getSubTypesOf(Object.class).forEach(this::addBlockType);
+        new Reflections(config).getSubTypesOf(Object.class).forEach(this::addBlock);
     }
 
-    public void addBlockType(Class<?> blockType) {
+    public void addBlock(Class<?> blockType) {
         blocks.put(blockType.getSimpleName().toLowerCase(), blockType);
 
         Map<Constructor<?>, List<String>> constructors = new HashMap<>();

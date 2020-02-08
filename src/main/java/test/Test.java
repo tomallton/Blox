@@ -15,7 +15,7 @@ public class Test {
 
     public static void main(String[] args) throws Exception {
         Blox<ConsoleClient> loader = new Blox<>();
-        loader.addBlockType("test.blocks");
+        loader.addBlocks("test.blocks");
         loader.load(new File("/Users/Tom/Documents/GitHub/Blox/src/main/resources"));
     }
 

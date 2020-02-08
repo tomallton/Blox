@@ -170,9 +170,9 @@ boolean booleanValue() :
   }
 }
 
-List < Object > array() :
+List<Object> array() :
 {
-  List < Object > array = new ArrayList < Object > ();
+  List<Object> array = new ArrayList<Object>();
   Object element;
 }
 {
@@ -196,9 +196,9 @@ List < Object > array() :
   }
 }
 
-List < Entry < String, Object > > object() :
+List<Entry<String, Object>> object() :
 {
-  List < Entry < String, Object > > object = new LinkedList < Entry < String, Object > > ();
+  List<Entry<String, Object>> object = new LinkedList<Entry<String, Object>>();
   String key;
   Object value;
 }
