@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ *
+ */
 public class FileUtils {
 
     public static Set<File> getFiles(File folder) {

@@ -2,7 +2,6 @@ package com.tomallton.blox;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -36,10 +35,13 @@ import com.tomallton.blox.util.FileUtils;
 
 public class Blox<C> {
 
+    // block name in lower case to block class
     private final Map<String, Class<?>> blocks = new HashMap<>();
 
+    // block class to its constructors with corresponding parameter names
     private final Map<Class<?>, Map<Constructor<?>, List<String>>> blockConstructors = new HashMap<>();
 
+    // class types to cast to corresponding interface / primitive type
     private final Map<Class<?>, Class<?>> paramCasts = new HashMap<>(
             Map.of(ArrayList.class, List.class, LinkedList.class, List.class, Double.class, double.class, Integer.class, int.class, Boolean.class, boolean.class));
 
@@ -104,84 +106,113 @@ public class Blox<C> {
         Constructor<?> constructor = null;
         List<Object> parameters = new ArrayList<>();
 
-        Object primitiveValue = extractValue(value);
+        Object primitiveValue = castValue(value);
 
         if (primitiveValue != null) {
-            // value (string, number, or boolean)
+            // value (string, number, or boolean), has format "Block": value,
             parameters.add(primitiveValue);
         } else if (value instanceof ArrayList) {
-            // array
+            // array, has format "Block": [ value1, value2, ... ],
             for (Object parameter : (List<Object>) value) {
                 parameters.add(extractParameter(parameter, false));
             }
         } else if (value instanceof LinkedList) {
-            // object
+            // object, has format "Block": { "param1": value1, "param2": value2", ... },
             Map<String, Object> object = new HashMap<>();
             for (Entry<String, Object> keyValue : (List<Entry<String, Object>>) value) {
+                // add parameter name-value pairs to map
                 object.putIfAbsent(keyValue.getKey().toLowerCase(), extractParameter(keyValue.getValue(), true));
             }
 
-            constructors: for (Map.Entry<Constructor<?>, List<String>> constructorEntry : blockConstructors.get(blockClass).entrySet()) {
-                if (!object.keySet().equals(constructorEntry.getValue().stream().collect(Collectors.toSet()))) {
+            // search for suitable constructor
+            constructors: for (Map.Entry<Constructor<?>, List<String>> entry : blockConstructors.get(blockClass).entrySet()) {
+                // check if parameter names equal
+                if (!object.keySet().equals(entry.getValue().stream().collect(Collectors.toSet()))) {
                     continue;
                 }
 
-                Class<?>[] paramTypes = constructorEntry.getKey().getParameterTypes();
+                // clear parameters from previous attempts
+                parameters.clear();
+
+                // check if parameter types equal
+                Class<?>[] paramTypes = entry.getKey().getParameterTypes();
+                List<String> paramNames = entry.getValue();
 
                 for (int i = 0; i < paramTypes.length; i++) {
-                    Object suppliedParameter = object.get(constructorEntry.getValue().get(i));
+                    String paramName = paramNames.get(i);
+                    Object suppliedParam = object.get(paramName);
+                    Class<?> suppliedClass = castClass(suppliedParam.getClass());
 
-                    if (suppliedParameter instanceof LinkedList) {
-                        suppliedParameter = getBlock(paramTypes[i], suppliedParameter);
+                    // nested block
+                    if (suppliedParam instanceof LinkedList) {
+                        suppliedParam = getBlock(paramTypes[i], suppliedParam);
                     } else {
-                        suppliedParameter = convertNumber(paramTypes[i], extractParameter(suppliedParameter, false));
+                        // cast number to match type
+                        suppliedParam = castNumber(paramTypes[i], suppliedParam);
                     }
 
-                    if (!paramCasts.getOrDefault(suppliedParameter.getClass(), suppliedParameter.getClass()).equals(paramTypes[i])) {
+                    // check parameter types equal
+                    if (!suppliedClass.equals(paramTypes[i])) {
                         continue constructors;
                     }
 
-                    parameters.add(suppliedParameter);
+                    // add parameter
+                    parameters.add(suppliedParam);
                 }
 
-                constructor = constructorEntry.getKey();
+                // both parameter names and type equal, save the discovered constructor and stop searching
+                constructor = entry.getKey();
                 break;
             }
 
+            // constructor not found
             if (constructor == null) {
                 throw new IllegalArgumentException("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + object);
             }
         }
 
+        // if block has single value or array of values, search for constructor
         if (constructor == null) {
             Function<Boolean, Constructor<?>> findConstructor = lenient -> {
                 search: for (Constructor<?> c : blockClass.getConstructors()) {
                     int numParameters = c.getParameterTypes().length;
+
+                    // don't require array parameter
                     if (numParameters > 0 && c.getParameterTypes()[c.getParameterTypes().length - 1].isArray()) {
                         numParameters--;
                     }
 
-                    if (numParameters > parameters.size()) {
+                    // continue if not enough parameters
+                    if (parameters.size() < numParameters) {
                         continue;
                     }
 
+                    // check parameter types equal
                     for (int i = 0; i < Math.min(c.getParameterTypes().length, parameters.size()); i++) {
                         Class<?> requiredParameter = c.getParameterTypes()[i];
+
+                        // fix parameter if it is an array
                         boolean array = requiredParameter.isArray() && i == c.getParameterTypes().length - 1;
                         requiredParameter = array ? requiredParameter.getComponentType() : requiredParameter;
 
+                        // if array, check all remaining parameters equal the array type
                         for (int j = i; j < (array ? parameters.size() : i + 1); j++) {
-                            Class<?> suppliedParameter = parameters.get(j).getClass();
-                            suppliedParameter = paramCasts.getOrDefault(suppliedParameter, suppliedParameter);
+                            Class<?> suppliedParameter = castClass(parameters.get(j).getClass());
 
                             if (!suppliedParameter.equals(requiredParameter)) {
+
+                                // if lenient, try number casting to make parameter types match
                                 if (lenient) {
-                                    Object number = convertNumber(requiredParameter, parameters.get(j));
-                                    if (number != null) {
+                                    Object number = castNumber(requiredParameter, parameters.get(j));
+                                    suppliedParameter = castClass(parameters.get(j).getClass());
+
+                                    if (suppliedParameter.equals(requiredParameter)) {
+                                        // update parameters with casted number
                                         parameters.set(j, number);
                                         continue;
                                     }
                                 }
+
                                 continue search;
                             }
                         }
@@ -192,63 +223,51 @@ public class Blox<C> {
                 return null;
             };
 
+            // attempt to find valid constructor
             constructor = findConstructor.apply(false);
 
+            // if not found, attempt to find valid constructor being more lenient
             if (constructor == null) {
                 constructor = findConstructor.apply(true);
+            }
 
-                if (constructor == null) {
-                    throw new IllegalArgumentException("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + parameters);
+            // throw exception if no constructor found
+            if (constructor == null) {
+                throw new IllegalArgumentException("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + parameters);
+            }
+
+            // if last argument of constructor is an array, convert
+            Class<?>[] paramTypes = constructor.getParameterTypes();
+            if (paramTypes.length > 0 && paramTypes[paramTypes.length - 1].isArray()) {
+                List<Object> typeArray = new ArrayList<>();
+
+                // remove parameters that form an array
+                if (parameters.size() >= paramTypes.length) {
+                    for (int i = paramTypes.length - 1; i < parameters.size(); i++) {
+                        typeArray.add(parameters.get(i));
+                    }
+                    for (int i = parameters.size() - 1; i >= paramTypes.length - 1; i--) {
+                        parameters.remove(i);
+                    }
+                }
+
+                // create array and add to the parameters
+                Class<?> arrayTest = paramTypes[paramTypes.length - 1];
+
+                if (arrayTest.getComponentType().isPrimitive()) {
+                    parameters.add(createPrimitiveArray(typeArray, arrayTest));
+                } else {
+                    parameters.add(typeArray.toArray((Object[]) Array.newInstance(arrayTest.getComponentType(), typeArray.size())));
                 }
             }
         }
 
-        // fix array
-        Class<?>[] paramTypes = constructor.getParameterTypes();
-        if (paramTypes.length > 0 && paramTypes[paramTypes.length - 1].isArray()) {
-            List<Object> typeArray = new ArrayList<>();
-
-            if (parameters.size() >= paramTypes.length) {
-                for (int i = paramTypes.length - 1; i < parameters.size(); i++) {
-                    typeArray.add(parameters.get(i));
-                }
-                for (int i = parameters.size() - 1; i >= paramTypes.length - 1; i--) {
-                    parameters.remove(i);
-                }
-            }
-
-            Class<?> arrayTest = paramTypes[paramTypes.length - 1];
-
-            if (arrayTest.getComponentType().isPrimitive()) {
-                parameters.add(createPrimitiveArray(typeArray, arrayTest));
-            } else {
-                parameters.add(typeArray.toArray((Object[]) Array.newInstance(arrayTest.getComponentType(), typeArray.size())));
-            }
-        }
-
+        // initialize constructor
         try {
             return constructor.newInstance(parameters.toArray(new Object[parameters.size()]));
         } catch (Exception exception) {
             throw new IllegalArgumentException("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + parameters);
         }
-    }
-
-    private Object convertNumber(Class<?> requiredParameter, Object parameter) {
-        Class<?> suppliedParameter = parameter.getClass();
-
-        if (requiredParameter == double.class) {
-            if (suppliedParameter == int.class || suppliedParameter == Integer.class) {
-                return (double) ((int) parameter);
-            }
-        } else if (requiredParameter == float.class) {
-            if (suppliedParameter == int.class || suppliedParameter == Integer.class) {
-                return (float) ((int) parameter);
-            } else if (suppliedParameter == double.class || suppliedParameter == Double.class) {
-                return (float) ((double) parameter);
-            }
-        }
-
-        return parameter;
     }
 
     private Object createPrimitiveArray(List<Object> array, Class<?> primitiveType) {
@@ -281,7 +300,8 @@ public class Blox<C> {
     }
 
     private Object extractParameter(Object parameter, boolean lenient) {
-        Object parameterValue = extractValue(parameter);
+        Object parameterValue = castValue(parameter);
+
         if (parameterValue != null) {
             return parameterValue;
         } else if (parameter instanceof ArrayList) {
@@ -292,6 +312,7 @@ public class Blox<C> {
             }
             return list;
         }
+
         if (!lenient) {
             throw new IllegalArgumentException("Invalid parameter " + parameter + " (" + parameter.getClass() + ")");
         } else {
@@ -299,7 +320,7 @@ public class Blox<C> {
         }
     }
 
-    private Object extractValue(Object value) {
+    private Object castValue(Object value) {
         if (value instanceof String || value instanceof Integer || value instanceof Double || value instanceof Boolean) {
             return value;
         } else if (value instanceof Integer) {
@@ -314,7 +335,30 @@ public class Blox<C> {
         return null;
     }
 
-    private List<String> getConstructorParameterNames(Constructor<?> constructor) throws IOException {
+    private Object castNumber(Class<?> requiredParameter, Object parameter) {
+        Class<?> suppliedParameter = parameter.getClass();
+
+        // casts numbers to the specified type
+        if (requiredParameter == double.class) {
+            if (suppliedParameter == int.class || suppliedParameter == Integer.class) {
+                return (double) ((int) parameter);
+            }
+        } else if (requiredParameter == float.class) {
+            if (suppliedParameter == int.class || suppliedParameter == Integer.class) {
+                return (float) ((int) parameter);
+            } else if (suppliedParameter == double.class || suppliedParameter == Double.class) {
+                return (float) ((double) parameter);
+            }
+        }
+
+        return parameter;
+    }
+
+    private Class<?> castClass(Class<?> clazz) {
+        return paramCasts.getOrDefault(clazz, clazz);
+    }
+
+    private List<String> getConstructorParameterNames(Constructor<?> constructor) {
         Class<?> declaringClass = constructor.getDeclaringClass();
         ClassLoader declaringClassLoader = declaringClass.getClassLoader();
 
@@ -327,13 +371,17 @@ public class Blox<C> {
             throw new IllegalArgumentException("The constructor's class loader cannot find the bytecode that defined the constructor's class (URL: " + url + ")");
         }
 
-        ClassNode classNode;
+        ClassNode classNode = null;
         try {
-            classNode = new ClassNode();
-            ClassReader classReader = new ClassReader(classFileInputStream);
-            classReader.accept(classNode, 0);
-        } finally {
-            classFileInputStream.close();
+            try {
+                classNode = new ClassNode();
+                ClassReader classReader = new ClassReader(classFileInputStream);
+                classReader.accept(classNode, 0);
+            } finally {
+                classFileInputStream.close();
+            }
+        } catch (Exception exception) {
+            throw new IllegalArgumentException("Error getting constructor parameter names for " + constructor.getClass());
         }
 
         List<MethodNode> methods = classNode.methods;
@@ -375,21 +423,8 @@ public class Blox<C> {
 
         Map<Constructor<?>, List<String>> constructors = new HashMap<>();
         for (Constructor<?> constructor : blockType.getConstructors()) {
-            try {
                 List<String> parameterNames = getConstructorParameterNames(constructor).stream().map(String::toLowerCase).collect(Collectors.toList());
-
-                for (int i = 0; i < parameterNames.size(); i++) {
-                    for (int j = 0; j < parameterNames.size(); j++) {
-                        if (i != j && parameterNames.get(i).equals(parameterNames.get(j))) {
-                            throw new IllegalArgumentException("Block " + blockType + " has a constructor with two parameters named the same (but with different case)");
-                        }
-                    }
-                }
-
                 constructors.put(constructor, parameterNames);
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
         }
 
         this.blockConstructors.put(blockType, constructors);
