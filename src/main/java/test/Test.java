@@ -6,10 +6,8 @@ import com.tomallton.blox.Blox;
 
 /**
  * TODO:
- * - Support nested stages
- * - Support number conversions and lists in object stages
- * - Handle errors better
  * - Create GUI
+ * - Fully comment all methods with JavaDocs
  */
 public class Test {
 
