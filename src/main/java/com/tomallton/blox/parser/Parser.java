@@ -9,6 +9,7 @@ import java.util.LinkedList;
 
 import com.tomallton.blox.parser.Entry;
 
+@SuppressWarnings("unused")
 public class Parser implements ParserConstants {
   public static void main(String [] args) throws ParseException
   {
@@ -16,7 +17,8 @@ public class Parser implements ParserConstants {
     parser.parse();
   }
 
-  final public Object parse() throws ParseException {
+  
+final public Object parse() throws ParseException {
   Object json;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case BRACKET_OPEN:
