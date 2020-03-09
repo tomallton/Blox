@@ -58,13 +58,13 @@ public class Blox<C> {
     public void load(Collection<File> files) {
         for (File file : files) {
             if (file.getName().endsWith(".blox") || file.getName().endsWith(".json")) {
-                loadProgram(file);
+                loadScript(file);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public void loadProgram(File file) {
+    public void loadScript(File file) {
         List<String> lines = FileUtils.readFile(file);
         Object data;
 
@@ -78,15 +78,15 @@ public class Blox<C> {
             throw new IllegalStateException("JSON in file '" + file.getName() + "' does not contain a JSON object");
         }
 
-        Program<C> program = new Program<C>();
+        Script<C> script = new Script<C>();
 
         for (Entry<String, Object> entry : (List<Entry<String, Object>>) data) {
             Object block = getBlock(entry.getKey(), entry.getValue());
 
             if (block instanceof ClientBlock) {
-                program.addBlock((ClientBlock<C>) block);
+                script.addBlock((ClientBlock<C>) block);
             } else {
-                program.addBlock(block);
+                script.addBlock(block);
             }
         }
     }

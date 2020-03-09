@@ -4,27 +4,27 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ClientBlock<C> {
-    private Program<C> program;
+    private Script<C> script;
     private final Set<C> clients = new HashSet<>();
 
     public void onEnter(C client) {
     }
 
-    public void onEnterProgram(C client) {
+    public void onEnterScript(C client) {
     }
 
     public void onExit(C client) {
     }
 
-    public void onExitProgram(C client) {
+    public void onExitScript(C client) {
     }
 
     public void progress(C client) {
-        if (program != null) {
-            program.progress(client);
+        if (script != null) {
+            script.progress(client);
         } else {
             remove(client);
-            onExitProgram(client);
+            onExitScript(client);
         }
     }
 
@@ -37,13 +37,13 @@ public class ClientBlock<C> {
     }
 
     public boolean add(C client) {
-        boolean inProgram = program.has(client);
+        boolean inScript = script.has(client);
 
         if (clients.add(client)) {
             onEnter(client);
-            if (!inProgram) {
-                for (ClientBlock<C> block : program.getClientBlocks()) {
-                    block.onEnterProgram(client);
+            if (!inScript) {
+                for (ClientBlock<C> block : script.getClientBlocks()) {
+                    block.onEnterScript(client);
                 }
             }
             return true;
@@ -59,7 +59,7 @@ public class ClientBlock<C> {
         return false;
     }
 
-    protected void setProgram(Program<C> program) {
-        this.program = program;
+    protected void setScript(Script<C> script) {
+        this.script = script;
     }
 }

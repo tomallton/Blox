@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class Program<C> {
+public class Script<C> {
     private final Map<Class<?>, Set<Object>> typeToBlock = new HashMap<>();
 
     private final List<ClientBlock<C>> clientBlocks = new ArrayList<>();
@@ -16,7 +16,7 @@ public class Program<C> {
         addBlock((Object) block);
 
         clientBlocks.add(block);
-        block.setProgram(this);
+        block.setScript(this);
     }
 
     public void addBlock(Object block) {
@@ -58,7 +58,7 @@ public class Program<C> {
                 if (i + 1 < clientBlocks.size()) {
                     clientBlocks.get(i + 1).add(client);
                 } else {
-                    clientBlocks.get(i).onExitProgram(client);
+                    clientBlocks.get(i).onExitScript(client);
                 }
                 return;
             }
