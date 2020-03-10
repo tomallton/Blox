@@ -10,10 +10,12 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,12 +31,16 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
+import com.tomallton.blox.blocks.Name;
+import com.tomallton.blox.blocks.Wait;
 import com.tomallton.blox.parser.Entry;
 import com.tomallton.blox.parser.Parser;
 import com.tomallton.blox.util.FileUtils;
 
 public class Blox<C> {
 
+    private static Blox<?> INSTANCE;
+    
     // block name in lower case to block class
     private final Map<String, Class<?>> blocks = new HashMap<>();
 
@@ -45,26 +51,52 @@ public class Blox<C> {
     private final Map<Class<?>, Class<?>> paramCasts = new HashMap<>(
             Map.of(ArrayList.class, List.class, LinkedList.class, List.class, Double.class, double.class, Integer.class, int.class, Boolean.class, boolean.class));
 
-    public void load(File folder) {
+    // all scripts currently loaded
+    private final Set<Script<C>> scripts = new HashSet<>();
+
+    public Blox() {
+        this(true);
+    }
+
+    public Blox(boolean registerDefaultBlocks) {
+        INSTANCE = this;
+        
+        if (registerDefaultBlocks) {
+            // addBlocks("com.tomallton.blox.blocks");
+            addBlock(Name.class);
+            addBlock(Wait.class);
+        }
+    }
+
+    public List<Script<C>> load(String folder) {
+        return load(new File(folder));
+    }
+
+    public List<Script<C>> load(File folder) {
         Objects.requireNonNull(folder);
 
         if (!folder.isDirectory()) {
             throw new IllegalArgumentException(folder.getPath() + " not a folder.");
         }
 
-        load(FileUtils.getFiles(folder));
+        return load(FileUtils.getFiles(folder));
     }
 
-    public void load(Collection<File> files) {
+    public List<Script<C>> load(Collection<File> files) {
+        List<Script<C>> scripts = new ArrayList<>();
+
         for (File file : files) {
             if (file.getName().endsWith(".blox") || file.getName().endsWith(".json")) {
-                loadScript(file);
+                Script<C> script = loadScript(file);
+                scripts.add(script);
             }
         }
+
+        return scripts;
     }
 
     @SuppressWarnings("unchecked")
-    public void loadScript(File file) {
+    public Script<C> loadScript(File file) {
         List<String> lines = FileUtils.readFile(file);
         Object data;
 
@@ -88,6 +120,37 @@ public class Blox<C> {
             } else {
                 script.addBlock(block);
             }
+        }
+
+        for (Block block : script.getBlocks()) {
+            block.onLoad(script);
+        }
+        
+        scripts.add(script);
+
+        return script;
+    }
+
+    public void reloadScripts(String folder) {
+        reloadScripts(new File(folder));
+    }
+
+    public void reloadScripts(File folder) {
+        unloadScripts();
+        load(folder);
+    }
+
+    public void unloadScripts() {
+        for (Script<C> script : scripts) {
+            unloadScript(script);
+        }
+
+        scripts.clear();
+    }
+
+    public void unloadScript(Script<C> script) {
+        for (Block block : script.getBlocks()) {
+            block.onUnload(script);
         }
     }
 
@@ -204,7 +267,7 @@ public class Blox<C> {
                                 // if lenient, try number casting to make parameter types match
                                 if (lenient) {
                                     Object number = castNumber(requiredParameter, parameters.get(j));
-                                    suppliedParameter = castClass(parameters.get(j).getClass());
+                                    suppliedParameter = castClass(number.getClass());
 
                                     if (suppliedParameter.equals(requiredParameter)) {
                                         // update parameters with casted number
@@ -436,5 +499,9 @@ public class Blox<C> {
 
     public void removeCast(Class<?> from) {
         paramCasts.remove(from);
+    }
+    
+    public static Blox<?> getInstance() {
+        return INSTANCE;
     }
 }

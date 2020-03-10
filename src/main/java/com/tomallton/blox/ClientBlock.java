@@ -3,7 +3,7 @@ package com.tomallton.blox;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ClientBlock<C> {
+public class ClientBlock<C> implements Block {
     private Script<C> script;
     private final Set<C> clients = new HashSet<>();
 

@@ -8,9 +8,14 @@ import java.util.Map;
 import java.util.Set;
 
 public class Script<C> {
-    private final Map<Class<?>, Set<Object>> typeToBlock = new HashMap<>();
+
+    private final List<Block> blocks = new ArrayList<>();
 
     private final List<ClientBlock<C>> clientBlocks = new ArrayList<>();
+
+    private final Map<Class<?>, Set<Object>> typeToBlock = new HashMap<>();
+
+    private final Map<String, Object> attributes = new HashMap<>();
 
     public void addBlock(ClientBlock<C> block) {
         addBlock((Object) block);
@@ -20,7 +25,19 @@ public class Script<C> {
     }
 
     public void addBlock(Object block) {
+        if (block instanceof Block) {
+            blocks.add((Block) block);
+        }
+
         typeToBlock.computeIfAbsent(block.getClass(), c -> new HashSet<>()).add(block);
+    }
+
+    public List<Block> getBlocks() {
+        return blocks;
+    }
+
+    public List<ClientBlock<C>> getClientBlocks() {
+        return clientBlocks;
     }
 
     public <B> B getBlock(Class<B> blockType) {
@@ -32,10 +49,6 @@ public class Script<C> {
     @SuppressWarnings("unchecked")
     public <B> Set<B> getBlocks(Class<B> blockType) {
         return (Set<B>) typeToBlock.get(blockType);
-    }
-
-    public List<ClientBlock<C>> getClientBlocks() {
-        return clientBlocks;
     }
 
     public void enter(C client) {
@@ -74,5 +87,13 @@ public class Script<C> {
             }
         }
         return false;
+    }
+
+    public Object getAttribute(String key) {
+        return attributes.get(key);
+    }
+
+    public void setAttribute(String key, Object value) {
+        attributes.put(key, value);
     }
 }
