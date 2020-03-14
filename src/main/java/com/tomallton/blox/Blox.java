@@ -31,16 +31,12 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
-import com.tomallton.blox.blocks.Name;
-import com.tomallton.blox.blocks.Wait;
 import com.tomallton.blox.parser.Entry;
 import com.tomallton.blox.parser.Parser;
 import com.tomallton.blox.util.FileUtils;
 
 public class Blox<C> {
 
-    private static Blox<?> INSTANCE;
-    
     // block name in lower case to block class
     private final Map<String, Class<?>> blocks = new HashMap<>();
 
@@ -59,12 +55,8 @@ public class Blox<C> {
     }
 
     public Blox(boolean registerDefaultBlocks) {
-        INSTANCE = this;
-        
         if (registerDefaultBlocks) {
-            // addBlocks("com.tomallton.blox.blocks");
-            addBlock(Name.class);
-            addBlock(Wait.class);
+//            addBlocks("com.tomallton.blox.blocks");
         }
     }
 
@@ -125,7 +117,7 @@ public class Blox<C> {
         for (Block block : script.getBlocks()) {
             block.onLoad(script);
         }
-        
+
         scripts.add(script);
 
         return script;
@@ -486,8 +478,8 @@ public class Blox<C> {
 
         Map<Constructor<?>, List<String>> constructors = new HashMap<>();
         for (Constructor<?> constructor : blockType.getConstructors()) {
-                List<String> parameterNames = getConstructorParameterNames(constructor).stream().map(String::toLowerCase).collect(Collectors.toList());
-                constructors.put(constructor, parameterNames);
+            List<String> parameterNames = getConstructorParameterNames(constructor).stream().map(String::toLowerCase).collect(Collectors.toList());
+            constructors.put(constructor, parameterNames);
         }
 
         this.blockConstructors.put(blockType, constructors);
@@ -499,9 +491,5 @@ public class Blox<C> {
 
     public void removeCast(Class<?> from) {
         paramCasts.remove(from);
-    }
-    
-    public static Blox<?> getInstance() {
-        return INSTANCE;
     }
 }

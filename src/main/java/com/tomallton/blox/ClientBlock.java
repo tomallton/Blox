@@ -5,6 +5,8 @@ import java.util.Set;
 
 public class ClientBlock<C> implements Block {
     private Script<C> script;
+    private int index;
+
     private final Set<C> clients = new HashSet<>();
 
     public void onEnter(C client) {
@@ -21,11 +23,16 @@ public class ClientBlock<C> implements Block {
 
     public void progress(C client) {
         if (script != null) {
-            script.progress(client);
-        } else {
-            remove(client);
-            onExitScript(client);
+            ClientBlock<C> next = getNextBlock();
+            if (next != null) {
+                remove(client);
+                next.add(client);
+                return;
+            }
         }
+
+        onExitScript(client);
+        remove(client);
     }
 
     public Set<C> getClients() {
@@ -59,7 +66,16 @@ public class ClientBlock<C> implements Block {
         return false;
     }
 
+    public int getIndex() {
+        return index;
+    }
+
+    public ClientBlock<C> getNextBlock() {
+        return index + 1 < script.getClientBlocks().size() ? script.getClientBlocks().get(index + 1) : null;
+    }
+
     protected void setScript(Script<C> script) {
         this.script = script;
+        this.index = script.getClientBlocks().indexOf(this);
     }
 }

@@ -52,32 +52,17 @@ public class Script<C> {
     }
 
     public void enter(C client) {
-        exit(client);
+        remove(client);
 
         if (!clientBlocks.isEmpty()) {
             clientBlocks.get(0).add(client);
         }
     }
 
-    public void exit(C client) {
+    public void remove(C client) {
         for (ClientBlock<C> block : clientBlocks) {
             block.remove(client);
         }
-    }
-
-    public void progress(C client) {
-        for (int i = 0; i < clientBlocks.size(); i++) {
-            if (clientBlocks.get(i).remove(client)) {
-                if (i + 1 < clientBlocks.size()) {
-                    clientBlocks.get(i + 1).add(client);
-                } else {
-                    clientBlocks.get(i).onExitScript(client);
-                }
-                return;
-            }
-        }
-
-        enter(client);
     }
 
     public boolean has(C client) {
