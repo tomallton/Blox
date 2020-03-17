@@ -24,15 +24,10 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
-import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
-import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
 import com.tomallton.blox.parser.Entry;
 import com.tomallton.blox.parser.Parser;
+import com.tomallton.blox.util.ClassUtils;
 import com.tomallton.blox.util.FileUtils;
 
 public class Blox<C> {
@@ -56,7 +51,7 @@ public class Blox<C> {
 
     public Blox(boolean registerDefaultBlocks) {
         if (registerDefaultBlocks) {
-//            addBlocks("com.tomallton.blox.blocks");
+            addBlocks("com.tomallton.blox.blocks");
         }
     }
 
@@ -147,7 +142,7 @@ public class Blox<C> {
     }
 
     private Object getBlock(String name, Object value) {
-        Class<?> blockClass = blocks.get(name.toLowerCase());
+        Class<?> blockClass = blocks.get(name.toLowerCase().replaceAll(" ", ""));
 
         if (blockClass == null) {
             throw new IllegalArgumentException("Block '" + name + "' does not exist");
@@ -459,18 +454,7 @@ public class Blox<C> {
     }
 
     public void addBlocks(String packageName) {
-        List<ClassLoader> classLoadersList = new LinkedList<ClassLoader>();
-        classLoadersList.add(ClasspathHelper.contextClassLoader());
-        classLoadersList.add(ClasspathHelper.staticClassLoader());
-
-        ConfigurationBuilder config = new ConfigurationBuilder();
-        // don't exclude Object.class
-        config.setScanners(new SubTypesScanner(false), new ResourcesScanner());
-        // filter package
-        config.filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName)));
-        config.setUrls(ClasspathHelper.forJavaClassPath());
-
-        new Reflections(config).getSubTypesOf(Object.class).forEach(this::addBlock);
+        ClassUtils.getClasses(packageName).forEach(this::addBlock);
     }
 
     public void addBlock(Class<?> blockType) {
