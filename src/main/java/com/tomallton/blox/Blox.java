@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.objectweb.asm.ClassReader;
@@ -223,62 +222,12 @@ public class Blox<C> {
 
         // if block has single value or array of values, search for constructor
         if (constructor == null) {
-            Function<Boolean, Constructor<?>> findConstructor = lenient -> {
-                search: for (Constructor<?> c : blockClass.getConstructors()) {
-                    int numParameters = c.getParameterTypes().length;
-
-                    // don't require array parameter
-                    if (numParameters > 0 && c.getParameterTypes()[c.getParameterTypes().length - 1].isArray()) {
-                        numParameters--;
-                    }
-
-                    // continue if not enough parameters
-                    if (parameters.size() < numParameters) {
-                        continue;
-                    }
-
-                    // check parameter types equal
-                    for (int i = 0; i < Math.min(c.getParameterTypes().length, parameters.size()); i++) {
-                        Class<?> requiredParameter = c.getParameterTypes()[i];
-
-                        // fix parameter if it is an array
-                        boolean array = requiredParameter.isArray() && i == c.getParameterTypes().length - 1;
-                        requiredParameter = array ? requiredParameter.getComponentType() : requiredParameter;
-
-                        // if array, check all remaining parameters equal the array type
-                        for (int j = i; j < (array ? parameters.size() : i + 1); j++) {
-                            Class<?> suppliedParameter = castClass(parameters.get(j).getClass());
-
-                            if (!suppliedParameter.equals(requiredParameter)) {
-
-                                // if lenient, try number casting to make parameter types match
-                                if (lenient) {
-                                    Object number = castNumber(requiredParameter, parameters.get(j));
-                                    suppliedParameter = castClass(number.getClass());
-
-                                    if (suppliedParameter.equals(requiredParameter)) {
-                                        // update parameters with casted number
-                                        parameters.set(j, number);
-                                        continue;
-                                    }
-                                }
-
-                                continue search;
-                            }
-                        }
-                    }
-
-                    return c;
-                }
-                return null;
-            };
-
             // attempt to find valid constructor
-            constructor = findConstructor.apply(false);
+            constructor = getConstructor(blockClass, parameters, false);
 
             // if not found, attempt to find valid constructor being more lenient
             if (constructor == null) {
-                constructor = findConstructor.apply(true);
+                constructor = getConstructor(blockClass, parameters, true);
             }
 
             // throw exception if no constructor found
@@ -318,6 +267,56 @@ public class Blox<C> {
         } catch (Exception exception) {
             throw new IllegalArgumentException("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + parameters);
         }
+    }
+
+    private Constructor<?> getConstructor(Class<?> clazz, List<Object> parameters, boolean lenient) {
+        search: for (Constructor<?> c : clazz.getConstructors()) {
+            int numParameters = c.getParameterTypes().length;
+
+            // don't require array parameter
+            if (numParameters > 0 && c.getParameterTypes()[c.getParameterTypes().length - 1].isArray()) {
+                numParameters--;
+            }
+
+            // continue if not enough parameters
+            if (parameters.size() < numParameters) {
+                continue;
+            }
+
+            // check parameter types equal
+            for (int i = 0; i < Math.min(c.getParameterTypes().length, parameters.size()); i++) {
+                Class<?> requiredParameter = c.getParameterTypes()[i];
+
+                // fix parameter if it is an array
+                boolean array = requiredParameter.isArray() && i == c.getParameterTypes().length - 1;
+                requiredParameter = array ? requiredParameter.getComponentType() : requiredParameter;
+
+                // if array, check all remaining parameters equal the array type
+                for (int j = i; j < (array ? parameters.size() : i + 1); j++) {
+                    Class<?> suppliedParameter = castClass(parameters.get(j).getClass());
+
+                    if (!suppliedParameter.equals(requiredParameter)) {
+
+                        // if lenient, try number casting to make parameter types match
+                        if (lenient) {
+                            Object number = castNumber(requiredParameter, parameters.get(j));
+                            suppliedParameter = castClass(number.getClass());
+
+                            if (suppliedParameter.equals(requiredParameter)) {
+                                // update parameters with casted number
+                                parameters.set(j, number);
+                                continue;
+                            }
+                        }
+
+                        continue search;
+                    }
+                }
+            }
+
+            return c;
+        }
+        return null;
     }
 
     private Object createPrimitiveArray(List<Object> array, Class<?> primitiveType) {
@@ -373,11 +372,7 @@ public class Blox<C> {
     private Object castValue(Object value) {
         if (value instanceof String || value instanceof Integer || value instanceof Double || value instanceof Boolean) {
             return value;
-        } else if (value instanceof Integer) {
-            return ((Integer) value).intValue();
-        }
-
-        else if (value instanceof BigInteger) {
+        } else if (value instanceof BigInteger) {
             return ((BigInteger) value).intValue();
         } else if (value instanceof BigDecimal) {
             return ((BigDecimal) value).doubleValue();
