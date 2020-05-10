@@ -163,14 +163,14 @@ public class Blox<C> {
         } else if (value instanceof ArrayList) {
             // array, has format "Block": [ value1, value2, ... ],
             for (Object parameter : (List<Object>) value) {
-                parameters.add(extractParameter(parameter, false));
+                parameters.add(extractArgument(parameter, false));
             }
         } else if (value instanceof LinkedList) {
             // object, has format "Block": { "param1": value1, "param2": value2", ... },
             Map<String, Object> object = new HashMap<>();
             for (Entry<String, Object> keyValue : (List<Entry<String, Object>>) value) {
                 // add parameter name-value pairs to map
-                object.putIfAbsent(keyValue.getKey().toLowerCase(), extractParameter(keyValue.getValue(), true));
+                object.putIfAbsent(keyValue.getKey().toLowerCase(), extractArgument(keyValue.getValue(), true));
             }
 
             // search for suitable constructor
@@ -348,24 +348,24 @@ public class Blox<C> {
         return null;
     }
 
-    private Object extractParameter(Object parameter, boolean lenient) {
-        Object parameterValue = castValue(parameter);
+    private Object extractArgument(Object argument, boolean lenient) {
+        Object argumentValue = castValue(argument);
 
-        if (parameterValue != null) {
-            return parameterValue;
-        } else if (parameter instanceof ArrayList) {
+        if (argumentValue != null) {
+            return argumentValue;
+        } else if (argument instanceof ArrayList) {
             @SuppressWarnings("unchecked")
-            List<Object> list = (List<Object>) parameter;
+            List<Object> list = (List<Object>) argument;
             for (int i = 0; i < list.size(); i++) {
-                list.set(i, extractParameter(list.get(i), false));
+                list.set(i, extractArgument(list.get(i), false));
             }
             return list;
         }
 
         if (!lenient) {
-            throw new IllegalArgumentException("Invalid parameter " + parameter + " (" + parameter.getClass() + ")");
+            throw new IllegalArgumentException("Invalid argument " + argument + " (" + argument.getClass() + ")");
         } else {
-            return parameter;
+            return argument;
         }
     }
 
