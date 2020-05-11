@@ -8,28 +8,46 @@ headsepline,
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{mathpazo}
-\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex}
-\addbibresource{example.bib}
+%\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex}
+%\addbibresource{example.bib}
 \usepackage[autostyle=true]{csquotes}
-\usepackage{float}
 
-%----------------------------------------------------------------------------------------
+% chapter headings
+\usepackage{titlesec}
+  \titleformat{\chapter}[hang]
+    {\normalfont\huge\bfseries}
+    {\thechapter}{20pt}{\huge}
+
+% put page numbers at bottom of page
+\clearpairofpagestyles
+\cfoot*{\pagemark{}}
+
+% fix blank pages
+\let\cleardoublepage\clearpage
+
+% reduce space between chapter title and text
+\titlespacing{\chapter}{0pt}{50pt}{15pt}
+
+% rename bibliography to references
+\addto\captionsenglish{\renewcommand{\bibname}{References}}
+
+%-----------------------------------------------------------
 %	MARGIN SETTINGS
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
 
 \geometry{
 	paper=a4paper, % Change to letterpaper for US letter
 	inner=2.5cm, % Inner margin
 	outer=3.8cm, % Outer margin
 	bindingoffset=.5cm, % Binding offset
-	top=1.5cm, % Top margin
+	top=0cm, % Top margin
 	bottom=1.5cm, % Bottom margin
 	%showframe, % Uncomment to show how the type block is set on the page
 }
 
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
 %	THESIS INFORMATION
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
 
 \thesistitle{Non-Technical Generation of Object-Oriented Code}
 \supervisor{Sara \textsc{Kalvala}}
@@ -40,6 +58,11 @@ headsepline,
 \university{\href{https://warwick.ac.uk/}{University of Warwick}}
 \department{\href{https://warwick.ac.uk/fac/sci/dcs/}{Department of Computer Science}}
 
+\addto\captionsenglish{
+  \renewcommand{\contentsname}
+    {Table of Contents}
+}
+
 \AtBeginDocument{
 \hypersetup{pdftitle=\ttitle}
 \hypersetup{pdfauthor=\authorname}
@@ -47,190 +70,92 @@ headsepline,
 }
 
 \begin{document}
+\pagestyle{plain}
+\pagenumbering{gobble}
 
-\frontmatter % Use roman page numbering style (i, ii, iii, iv...) for the pre-content pages
-
-\pagestyle{plain} % Default to the plain heading style until the thesis style is called for the body content
-
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
 %	TITLE PAGE
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
 
 \begin{titlepage}
 \begin{center}
 
-\vspace*{.06\textheight}
-{\scshape\LARGE \univname\par}\vspace{1.5cm} % University name
-\textsc{\Large Department of Computer Science}\\[0.5cm] % Thesis type
-\textsc{\large CS310: Third Year Project}\\[0.5cm] % Thesis type
+\vspace*{.1\textheight}
+{\scshape\LARGE \univname\par}\vspace{1.5cm}
+\textsc{\Large Department of Computer Science}\\[0.5cm]
+\textsc{\large CS310: Third Year Project}\\[0.5cm]
 
-\HRule \\[0.4cm] % Horizontal line
-{\huge \bfseries \ttitle\par}\vspace{0.4cm} % Thesis title
-\HRule \\[1.5cm] % Horizontal line
+\HRule \\[0.4cm]
+{\huge \bfseries \ttitle\par}\vspace{0.4cm}
+\HRule \\[1.5cm]
  
 \begin{minipage}[t]{0.4\textwidth}
 \begin{flushleft} \large
 \emph{Author:}\\
-\href{https://www.tomallton.com}{\authorname} % Author name - remove the \href bracket to remove the link
+\href{https://www.tomallton.com}{\authorname}
 \end{flushleft}
 \end{minipage}
 \begin{minipage}[t]{0.4\textwidth}
 \begin{flushright} \large
 \emph{Supervisor:} \\
-\href{https://warwick.ac.uk/fac/sci/dcs/people/sara_kalvala/}{\supname} % Supervisor name - remove the \href bracket to remove the link  
+\href{https://warwick.ac.uk/fac/sci/dcs/people/sara_kalvala/}{\supname}
 \end{flushright}
 \end{minipage}\\[2cm]
-{\large \today}\\[2cm] % Date
-\includegraphics{Logo} % University/department logo
+{\large \today}\\[2cm]
+\includegraphics{Logo}
 \end{center}
 \end{titlepage}
 
-%----------------------------------------------------------------------------------------
-%	DECLARATION PAGE
-%----------------------------------------------------------------------------------------
-
-\begin{declaration}
-\addchaptertocentry{\authorshipname} % Add the declaration to the table of contents
-\noindent I, \authorname, declare that this thesis titled, \enquote{\ttitle} and the work presented in it are my own. I confirm that:
-
-\begin{itemize} 
-\item This work was done wholly or mainly while in candidature for a research degree at this University.
-\item Where any part of this thesis has previously been submitted for a degree or any other qualification at this University or any other institution, this has been clearly stated.
-\item Where I have consulted the published work of others, this is always clearly attributed.
-\item Where I have quoted from the work of others, the source is always given. With the exception of such quotations, this thesis is entirely my own work.
-\item I have acknowledged all main sources of help.
-\item Where the thesis is based on work done by myself jointly with others, I have made clear exactly what was done by others and what I have contributed myself.\\
-\end{itemize}
- 
-\noindent Signed:\\
-\rule[0.5em]{25em}{0.5pt} % This prints a line for the signature
- 
-\noindent Date:\\
-\rule[0.5em]{25em}{0.5pt} % This prints a line to write the date
-\end{declaration}
-
-\cleardoublepage
-
-%----------------------------------------------------------------------------------------
-%	QUOTATION PAGE
-%----------------------------------------------------------------------------------------
-
-\vspace*{0.2\textheight}
-
-\noindent\enquote{\itshape Thanks to my solid academic training, today I can write hundreds of words on virtually any topic without possessing a shred of information, which is how I got a good job in journalism.}\bigbreak
-
-\hfill Dave Barry
-
-%----------------------------------------------------------------------------------------
-%	ABSTRACT PAGE
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
+%	ABSTRACT
+%-----------------------------------------------------------
 
 \begin{abstract}
-\addchaptertocentry{\abstractname} % Add the abstract to the table of contents
-The Thesis Abstract is written here (and usually kept to just this page). The page is kept centered vertically so can expand into the blank space above the title too\ldots
+\vspace*{5cm}
+\begin{center}
+    \textbf{Abstract}
+\end{center}
+Object-oriented programming can require a programmer to do repeated work. This type of work is often trivial but time consuming. For example, repeatedly initialising multiple instances of the same class with different parameters. If the class is used to store data, the parameters are probably determined by some data source. In this case, the programmer must make a decision to either write code to read the data from the source and use it to initialise the objects during runtime, or copy and paste the data directly into source code and hard code the class initialisation. This kind of work is tedious, and could be done by a non-technical user if automated. A simple intermediate language that contains a representation of class instances, is simple for a non-technical user to understand, and deserialises to full object-oriented code, would solve this problem. The solution takes pure JSON, a simple format of data, parses it using a custom parser, and initialises classes in an object-oriented language. The class instances created are kept ordered in the same order that their corresponding representations had in the file. This allows the class instances to be executed in order, forming a kind of program.
+\end{abstract}
+\vspace{1cm}
+\begin{abstract}
+\textit{\textbf{Keywords— }}\keywordnames
 \end{abstract}
 
-%----------------------------------------------------------------------------------------
-%	ACKNOWLEDGEMENTS
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
+%	TABLE OF CONTENTS
+%-----------------------------------------------------------
 
-\begin{acknowledgements}
-\addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
-The acknowledgments and the people to thank go here, don't forget to include your project advisor\ldots
-\end{acknowledgements}
+\tableofcontents
+\addtocontents{toc}{\vspace{-0.2cm}}
 
-%----------------------------------------------------------------------------------------
-%	LIST OF CONTENTS/FIGURES/TABLES PAGES
-%----------------------------------------------------------------------------------------
+%-----------------------------------------------------------
+%	PROBLEM INTRODUCTION
+%-----------------------------------------------------------
 
-\tableofcontents % Prints the main table of contents
+\chapter{Problem Introduction}
+\pagenumbering{arabic}
 
-\listoffigures % Prints the list of figures
+Automation continues to reduce work for programmers in industry. Software libraries are continually improving, and mean programmers can do more with less. However, simple repeated tasks, such as initialising several data classes, can slow down a developers workflow. Depending on the project, the data used to initialise these objects can be from some data source, such as a flat file, or the developer could have to seek this data themselves. If the data is stored in some data source, the developer can choose to either read directly from the data source and use it to initialise classes, or copy and paste the information into code, meaning the data is hard coded. The decision for which approach to go with will probably be made based on the size of the data. If it is the case that the developer must seek and determine the data themselves, this task could also be done by a non-technical user. The solution solves the problem for both of these cases. For the first case, the solution can be used as an advanced format of data, which is automatically read, and results in the initialisation of data classes in an object-oriented language. In the second case, a non-technical user is able to seek and determine the data themselves, and write it in a simple format, which is a representation of objects.\par
+Despite software libraries and utilities continually improving, they still require programming skill, so are not as accessible to non-technical users. An alternative way of considering the project is for it to serve as a bridge between object-oriented languages, and a higher-level representation that is closer to natural language. It is this that makes this intermediate representation easier to understand for non-technical users. Rather than the block classes just being classes that store data, they can also cause some useful behaviour for the user. Initialising these types of classes is similar to calling a function. It is not thought of as creating an object instance from the perspective of the non-technical user. It is this technique that allows the potential for software libraries to be made more accessible to non-technical users.\par
+The class instances initialised are ordered in a sequence, so they may be executed in order. This is made possible by the classes implementing specific interfaces included in the API, which includes event methods that can be overridden to detect when the class is executed. These types of classes are named ‘blocks’ to non-technical users, reflecting the ability to combine them together like building blocks, collectively making a program.
 
-\listoftables % Prints the list of tables
+%-----------------------------------------------------------
+%	BACKGROUND RESEARCH
+%-----------------------------------------------------------
 
-%----------------------------------------------------------------------------------------
-%	ABBREVIATIONS
-%----------------------------------------------------------------------------------------
+\chapter{Background Research}
 
-\begin{abbreviations}{ll} % Include a list of abbreviations (a table of two columns)
+Several existing high-level and visual programming languages were considered in order to inspire ideas for the project. This also ensured the scope of the project did not include features from existing solutions. This section outlines the main languages considered, and any changes they inspired. Methods to dynamically initialise objects from data in different languages were also investigated.
 
-\textbf{LAH} & \textbf{L}ist \textbf{A}bbreviations \textbf{H}ere\\
-\textbf{WSF} & \textbf{W}hat (it) \textbf{S}tands \textbf{F}or\\
+\section{Google Blockly}
 
-\end{abbreviations}
+Blockly is a client-side library for JavaScript for creating block-based visual programming languages and editors. It is used for Android App inventor and Jira AutoBlocks \cite{blockly}. It represents coding concepts using interlocking blocks, and then generates simple, syntactically correct code in a language you can specify. It is powerful, and extendible. Representing coding concepts using drag and drop blocks with configurable properties provides inspiration for class instances to be represented in a similar way. However, Blockly itself does not work well when trying to represent objects in an object-oriented language. It works better for representing code constructs such as conditionals, and variable declaration and modification. The issue with this is it is still fairly fiddly to combine these interlocking blocks to create lines of code, and is slower than just writing directly in the language itself, especially in the case of a simple, non-verbose language like Python. Additionally, it does not generate anything that is executable directly, it generates the equivalent lines of code that the blocks represent. The disadvantage of using this for the solution is that it does not produce any intermediate representation of the created program. It directly generates code in the specified language. This means the non-technical user would have to send the source code to a developer, who would then have to manually paste it into some class and ensure it gets run. This would defeat a lot of the purpose of this project, as it is clunky, slows down the workflow, and does not maximise the potential power and usefulness of a non-technical user. As mentioned earlier, this project can be used as a method of reading from large data files, and directly initialising classes (assuming the data file is in the format of the intermediate language). One major advantage of reading data from a file, rather than hardcoding the data directly in source code, is that it stops source files, and in turn the program as a whole, from getting large. If Blocky is used to generate a lot of source code, it would cause potentially large source files, which is another disadvantage. In summary, Blockly helped realise the idea for representing coding concepts using drag and drop, interlocking, configurable blocks. It also inspired a more user friendly name for this project if it is used in a production environment: ‘Blox’.
 
-%----------------------------------------------------------------------------------------
-%	PHYSICAL CONSTANTS/OTHER DEFINITIONS
-%----------------------------------------------------------------------------------------
+\begin{thebibliography}{9}
 
-\begin{constants}{lr@{${}={}$}l} % The list of physical constants is a three column table
+\bibitem{blockly}Google Blockly \texttt{https://developers.google.com/blockly}
 
-% The \SI{}{} command is provided by the siunitx package, see its documentation for instructions on how to use it
-
-Speed of Light & $c_{0}$ & \SI{2.99792458e8}{\meter\per\second} (exact)\\
-%Constant Name & $Symbol$ & $Constant Value$ with units\\
-
-\end{constants}
-
-%----------------------------------------------------------------------------------------
-%	SYMBOLS
-%----------------------------------------------------------------------------------------
-
-\begin{symbols}{lll} % Include a list of Symbols (a three column table)
-
-$a$ & distance & \si{\meter} \\
-$P$ & power & \si{\watt} (\si{\joule\per\second}) \\
-%Symbol & Name & Unit \\
-
-\addlinespace % Gap to separate the Roman symbols from the Greek
-
-$\omega$ & angular frequency & \si{\radian} \\
-
-\end{symbols}
-
-%----------------------------------------------------------------------------------------
-%	DEDICATION
-%----------------------------------------------------------------------------------------
-
-\dedicatory{For/Dedicated to/To my\ldots} 
-
-%----------------------------------------------------------------------------------------
-%	THESIS CONTENT - CHAPTERS
-%----------------------------------------------------------------------------------------
-
-\mainmatter % Begin numeric (1,2,3...) page numbering
-
-\pagestyle{thesis} % Return the page headers back to the "thesis" style
-
-% Include the chapters of the thesis as separate files from the Chapters folder
-% Uncomment the lines as you write the chapters
-
-\include{Chapters/Chapter1}
-%\include{Chapters/Chapter2} 
-%\include{Chapters/Chapter3}
-%\include{Chapters/Chapter4} 
-%\include{Chapters/Chapter5} 
-
-%----------------------------------------------------------------------------------------
-%	THESIS CONTENT - APPENDICES
-%----------------------------------------------------------------------------------------
-
-\appendix % Cue to tell LaTeX that the following "chapters" are Appendices
-
-% Include the appendices of the thesis as separate files from the Appendices folder
-% Uncomment the lines as you write the Appendices
-
-\include{Appendices/AppendixA}
-%\include{Appendices/AppendixB}
-%\include{Appendices/AppendixC}
-
-%----------------------------------------------------------------------------------------
-%	BIBLIOGRAPHY
-%----------------------------------------------------------------------------------------
-
-\printbibliography[heading=bibintoc]
-
-%----------------------------------------------------------------------------------------
+\end{thebibliography}
 
 \end{document}  
