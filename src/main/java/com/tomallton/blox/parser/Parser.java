@@ -9,7 +9,6 @@ import java.util.LinkedList;
 
 import com.tomallton.blox.parser.Entry;
 
-@SuppressWarnings("unused")
 public class Parser implements ParserConstants {
   public static void main(String [] args) throws ParseException
   {
@@ -17,8 +16,7 @@ public class Parser implements ParserConstants {
     parser.parse();
   }
 
-  
-final public Object parse() throws ParseException {
+  final public Object parse() throws ParseException {
   Object json;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case BRACKET_OPEN:
@@ -32,8 +30,7 @@ final public Object parse() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    {if (true) return json;}
-    throw new Error("Missing return statement in function");
+    return json;
   }
 
   final public Object element() throws ParseException {
@@ -57,8 +54,7 @@ final public Object parse() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    {if (true) return element;}
-    throw new Error("Missing return statement in function");
+    return element;
   }
 
   final public Object value() throws ParseException {
@@ -80,11 +76,11 @@ final public Object parse() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    {if (true) return value;}
-    throw new Error("Missing return statement in function");
+    return value;
   }
 
-  final public Number number() throws ParseException {
+  @SuppressWarnings("unused")
+final public Number number() throws ParseException {
   Token token;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER:
@@ -106,8 +102,7 @@ final public Object parse() throws ParseException {
   final public String string() throws ParseException {
     jj_consume_token(STRING);
     String image = token.image;
-    {if (true) return image.substring(1, image.length() - 1);}
-    throw new Error("Missing return statement in function");
+    return image.substring(1, image.length() - 1);
   }
 
   final public boolean booleanValue() throws ParseException {
@@ -126,12 +121,11 @@ final public Object parse() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    {if (true) return value;}
-    throw new Error("Missing return statement in function");
+    return value;
   }
 
-  final public List < Object > array() throws ParseException {
-  List < Object > array = new ArrayList < Object > ();
+  final public List<Object> array() throws ParseException {
+  List<Object> array = new ArrayList<Object>();
   Object element;
     jj_consume_token(BRACKET_OPEN);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -164,12 +158,11 @@ final public Object parse() throws ParseException {
       ;
     }
     jj_consume_token(BRACKET_CLOSE);
-    {if (true) return array;}
-    throw new Error("Missing return statement in function");
+    return array;
   }
 
-  final public List < Entry < String, Object > > object() throws ParseException {
-  List < Entry < String, Object > > object = new LinkedList < Entry < String, Object > > ();
+  final public List<Entry<String, Object>> object() throws ParseException {
+  List<Entry<String, Object>> object = new LinkedList<Entry<String, Object>>();
   String key;
   Object value;
     jj_consume_token(BRACE_OPEN);
@@ -201,8 +194,7 @@ final public Object parse() throws ParseException {
       ;
     }
     jj_consume_token(BRACE_CLOSE);
-    {if (true) return object;}
-    throw new Error("Missing return statement in function");
+    return object;
   }
 
   /** Generated Token Manager. */

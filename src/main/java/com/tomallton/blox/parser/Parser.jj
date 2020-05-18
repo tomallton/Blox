@@ -42,15 +42,15 @@ TOKEN :
   < BRACKET_CLOSE : "]" >
 | 
   < BRACE_OPEN : "{" >
-| 
+|
   < BRACE_CLOSE : "}" >
 | 
   < INTEGER : ("-")? (< DIGIT >)+ >
 | 
   < DECIMAL : ("-")? (< DIGIT >)* "." (< DIGIT >)+ >
 | 
-  < STRING : < QUOTE > (~[ "\"" ])* < QUOTE > >
-| 
+  < STRING : < QUOTE > ("\\" ~[] | ~["\"", "\\"])* < QUOTE > >
+|
   < TRUE : "true" >
 | 
   < FALSE : "false" >
