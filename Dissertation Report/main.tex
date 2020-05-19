@@ -7,10 +7,6 @@ headsepline,
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{mathpazo}
-%\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex}
-%\addbibresource{example.bib}
-\usepackage[autostyle=true]{csquotes}
 
 % chapter headings
 \usepackage{titlesec}
@@ -31,15 +27,19 @@ headsepline,
 % rename bibliography to references
 \addto\captionsenglish{\renewcommand{\bibname}{References}}
 
+% make figure numbers go up by 1 each time
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+
 %-----------------------------------------------------------
 %	MARGIN SETTINGS
 %-----------------------------------------------------------
 
 \geometry{
 	paper=a4paper, % Change to letterpaper for US letter
-	inner=2.5cm, % Inner margin
-	outer=3.8cm, % Outer margin
-	bindingoffset=.5cm, % Binding offset
+	inner=3cm, % Inner margin
+	outer=3cm, % Outer margin
+	bindingoffset=.0cm, % Binding offset
 	top=0cm, % Top margin
 	bottom=1.5cm, % Bottom margin
 	%showframe, % Uncomment to show how the type block is set on the page
@@ -54,7 +54,7 @@ headsepline,
 \degree{Computer Science}
 \author{Thomas \textsc{Allton}}
 \subject{Computer Science}
-\keywords{Reflection, Java, Compiler, Parser, Representation, JSON, Object-Oriented} % \keywordnames
+\keywords{Reflection, Java, Compiler, Parser, Representation, Object-Oriented, JSON} % \keywordnames
 \university{\href{https://warwick.ac.uk/}{University of Warwick}}
 \department{\href{https://warwick.ac.uk/fac/sci/dcs/}{Department of Computer Science}}
 
@@ -115,47 +115,77 @@ headsepline,
 \begin{center}
     \textbf{Abstract}
 \end{center}
-Object-oriented programming can require a programmer to do repeated work. This type of work is often trivial but time consuming. For example, repeatedly initialising multiple instances of the same class with different parameters. If the class is used to store data, the parameters are probably determined by some data source. In this case, the programmer must make a decision to either write code to read the data from the source and use it to initialise the objects during runtime, or copy and paste the data directly into source code and hard code the class initialisation. This kind of work is tedious, and could be done by a non-technical user if automated. A simple intermediate language that contains a representation of class instances, is simple for a non-technical user to understand, and deserialises to full object-oriented code, would solve this problem. The solution takes pure JSON, a simple format of data, parses it using a custom parser, and initialises classes in an object-oriented language. The class instances created are kept ordered in the same order that their corresponding representations had in the file. This allows the class instances to be executed in order, forming a kind of program.
+Object-oriented programming can require a programmer to do repeated work. This type of work is often trivial but time consuming. For example, repeatedly initialising multiple instances of the same class with different parameters. If the class is used to store data, the parameters are probably determined by some data source. In this case, the programmer must make a decision to either write code to read the data from the source and use it to initialise the objects during runtime, or copy and paste the data directly into source code and hard code the class initialisation. This kind of work is tedious, and could be done by a non-technical user if automated. A simple intermediate language that contains a representation of class instances, is simple for a non-technical user to understand, and deserialises to full object-oriented code, would solve this problem. This project implements this solution. It takes pure JSON, a simple format of data, parses it using a custom parser, and initialises classes in an object-oriented language. The objects created are kept ordered in the same order that their corresponding representations had in the file. This allows the objects to be executed in order, forming a kind of program.
 \end{abstract}
 \vspace{1cm}
 \begin{abstract}
-\textit{\textbf{Keywords— }}\keywordnames
+\textit{\textbf{Keywords—}} \keywordnames
 \end{abstract}
 
-%-----------------------------------------------------------
-%	TABLE OF CONTENTS
-%-----------------------------------------------------------
-
+% Table of Contents
 \tableofcontents
 \addtocontents{toc}{\vspace{-0.2cm}}
 
-%-----------------------------------------------------------
-%	PROBLEM INTRODUCTION
-%-----------------------------------------------------------
+% Problem Introduction
+\input{Chapters/Chapter1}
 
-\chapter{Problem Introduction}
-\pagenumbering{arabic}
+% Background Research
+\input{Chapters/Chapter2}
 
-Automation continues to reduce work for programmers in industry. Software libraries are continually improving, and mean programmers can do more with less. However, simple repeated tasks, such as initialising several data classes, can slow down a developers workflow. Depending on the project, the data used to initialise these objects can be from some data source, such as a flat file, or the developer could have to seek this data themselves. If the data is stored in some data source, the developer can choose to either read directly from the data source and use it to initialise classes, or copy and paste the information into code, meaning the data is hard coded. The decision for which approach to go with will probably be made based on the size of the data. If it is the case that the developer must seek and determine the data themselves, this task could also be done by a non-technical user. The solution solves the problem for both of these cases. For the first case, the solution can be used as an advanced format of data, which is automatically read, and results in the initialisation of data classes in an object-oriented language. In the second case, a non-technical user is able to seek and determine the data themselves, and write it in a simple format, which is a representation of objects.\par
-Despite software libraries and utilities continually improving, they still require programming skill, so are not as accessible to non-technical users. An alternative way of considering the project is for it to serve as a bridge between object-oriented languages, and a higher-level representation that is closer to natural language. It is this that makes this intermediate representation easier to understand for non-technical users. Rather than the block classes just being classes that store data, they can also cause some useful behaviour for the user. Initialising these types of classes is similar to calling a function. It is not thought of as creating an object instance from the perspective of the non-technical user. It is this technique that allows the potential for software libraries to be made more accessible to non-technical users.\par
-The class instances initialised are ordered in a sequence, so they may be executed in order. This is made possible by the classes implementing specific interfaces included in the API, which includes event methods that can be overridden to detect when the class is executed. These types of classes are named ‘blocks’ to non-technical users, reflecting the ability to combine them together like building blocks, collectively making a program.
+% Implementation
+\input{Chapters/Chapter3}
 
-%-----------------------------------------------------------
-%	BACKGROUND RESEARCH
-%-----------------------------------------------------------
+% Testing
+\input{Chapters/Chapter4}
 
-\chapter{Background Research}
+% Use Cases
+\input{Chapters/Chapter5}
 
-Several existing high-level and visual programming languages were considered in order to inspire ideas for the project. This also ensured the scope of the project did not include features from existing solutions. This section outlines the main languages considered, and any changes they inspired. Methods to dynamically initialise objects from data in different languages were also investigated.
+% Future Work
+\input{Chapters/Chapter6}
 
-\section{Google Blockly}
+% Conclusion
+\input{Chapters/Chapter7}
 
-Blockly is a client-side library for JavaScript for creating block-based visual programming languages and editors. It is used for Android App inventor and Jira AutoBlocks \cite{blockly}. It represents coding concepts using interlocking blocks, and then generates simple, syntactically correct code in a language you can specify. It is powerful, and extendible. Representing coding concepts using drag and drop blocks with configurable properties provides inspiration for class instances to be represented in a similar way. However, Blockly itself does not work well when trying to represent objects in an object-oriented language. It works better for representing code constructs such as conditionals, and variable declaration and modification. The issue with this is it is still fairly fiddly to combine these interlocking blocks to create lines of code, and is slower than just writing directly in the language itself, especially in the case of a simple, non-verbose language like Python. Additionally, it does not generate anything that is executable directly, it generates the equivalent lines of code that the blocks represent. The disadvantage of using this for the solution is that it does not produce any intermediate representation of the created program. It directly generates code in the specified language. This means the non-technical user would have to send the source code to a developer, who would then have to manually paste it into some class and ensure it gets run. This would defeat a lot of the purpose of this project, as it is clunky, slows down the workflow, and does not maximise the potential power and usefulness of a non-technical user. As mentioned earlier, this project can be used as a method of reading from large data files, and directly initialising classes (assuming the data file is in the format of the intermediate language). One major advantage of reading data from a file, rather than hardcoding the data directly in source code, is that it stops source files, and in turn the program as a whole, from getting large. If Blocky is used to generate a lot of source code, it would cause potentially large source files, which is another disadvantage. In summary, Blockly helped realise the idea for representing coding concepts using drag and drop, interlocking, configurable blocks. It also inspired a more user friendly name for this project if it is used in a production environment: ‘Blox’.
-
-\begin{thebibliography}{9}
+% References
+\begin{thebibliography}{20}
 
 \bibitem{blockly}Google Blockly \texttt{https://developers.google.com/blockly}
 
+\bibitem{scratch}Scratch \texttt{https://scratch.mit.edu/}
+
+\bibitem{json}JSON \texttt{https://www.json.org/json-en.html}
+
+\bibitem{gson}GSON \texttt{https://github.com/google/gson/blob/master/UserGuide.md}
+
+\bibitem{gson_instance_creator}GSON Instance Creator \texttt{https://www.javadoc.io/doc/com.google.code.gson/\\gson/2.6.2/com/google/gson/InstanceCreator.html}
+
+\bibitem{reflection}Reflection \texttt{https://en.wikipedia.org/wiki/Reflection\\\_(computer\_programming)}
+
+\bibitem{javacc}JavaCC \texttt{https://javacc.github.io/javacc/}
+
+\bibitem{top_user_interface_libraries}Top JavaScript User Interface Frameworks  \texttt{https://www.freecodecamp.org/news/\\complete-guide-for-front-end-developers-javascript-frameworks-2019/}
+
+\bibitem{react}React \texttt{https://reactjs.org/}
+
+\bibitem{react_native}React Native vs React \texttt{https://stackoverflow.com/questions/34641582/\\what-is-the-difference-between-react-native-and-react}
+
+\bibitem{hash_based_table}Hash Based Table \texttt{https://guava.dev/releases/19.0/api/docs/com/google\\/common/collect/HashBasedTable.html}
+
+\bibitem{java_classes_in_package}Java Classes in a package \texttt{https://stackoverflow.com/questions/520328/\\can-you-find-all-classes-in-a-package-using-reflection}
+
+\bibitem{reflections}Reflections Library \texttt{https://github.com/ronmamo/reflections}
+
+\bibitem{maven}Maven \texttt{https://maven.apache.org/}
+
+\bibitem{java_constructor_parameter_names}Java constructor parameter names  \texttt{https://stackoverflow.com/\\questions/2729580/how-to-get-the-parameter-names-of-an\\-objects-constructors-reflection}
+
+\bibitem{asm}ASM \texttt{https://asm.ow2.io/}
+
+\bibitem{big_integer_big_decimal}BigInteger and BigDecimal \texttt{https://www.baeldung.com/java-bigdecimal\\-biginteger}
+
+\bibitem{array_list}ArrayList documentation \texttt{https://docs.oracle.com/javase/8/docs/api\\/java/util/ArrayList.html}
+
 \end{thebibliography}
 
-\end{document}  
+\end{document}

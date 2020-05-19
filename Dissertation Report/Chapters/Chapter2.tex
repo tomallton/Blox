@@ -1,0 +1,188 @@
+\chapter{Background Research}
+
+Several existing high-level and visual programming languages were considered in order to inspire ideas for the project. This also ensured the scope of the project did not include features from existing solutions. This section outlines the main languages considered, and any changes they inspired. Methods to dynamically instantiate objects from data in different languages were also investigated.
+
+\section{Google Blockly}
+
+Blockly is a client-side library for JavaScript for creating block-based visual programming languages and editors. It is used for Android App inventor and Jira AutoBlocks \cite{blockly}. It represents coding concepts using interlocking blocks, and then generates simple, syntactically correct code in a language you can specify. It is powerful and extendable.
+
+\subsection{Limitations}
+Representing coding concepts using drag and drop blocks with configurable properties provides inspiration for class instances to be represented in a similar way. However, Blockly itself does not work well when trying to represent objects in an object-oriented language. It works better for representing code constructs such as conditionals, and variable declaration and modification. The issue with this is it is still fairly difficult to combine these interlocking blocks to create lines of code, and is slower than just writing directly in the language itself, especially in the case of a simple, non-verbose language like Python.\par
+Additionally Blocky does not generate anything that is executable directly, it generates the equivalent lines of code that the blocks represent. The disadvantage of using this for the solution is that it does not produce any intermediate representation of the created program. It directly generates code in the specified language. This means the non-technical user would have to send the source code to a developer, who would then have to manually paste it into some class and ensure it gets run. This would defeat a lot of the purpose of this project, as it is clunky, slows down the workflow, and does not maximise the potential power and usefulness of a non-technical user.\par
+As previously mentioned, this project can be used as a method of reading from large data files, and directly instantiating classes (assuming the data file is in the format of the intermediate language). One major advantage of reading data from a file, rather than hardcoding the data directly in source code, is that it stops source files, and in turn the program as a whole, from getting large. If Blocky is used to generate a lot of source code, it would cause potentially large source files, which is another disadvantage. In summary, Blockly helped realise the idea for representing coding concepts using drag and drop, interlocking, configurable blocks. It also inspired a more user friendly name for this project if it is used in a production environment: 'Blox'.
+
+\section{Object Representation}
+
+When trying to determine a simpler way of representing class instantiation textually, several formats were considered. The result was that JSON was found to be able to provide a strong representation.
+\subsection{C-based Object Representation}
+It makes logical sense to start with the syntax of class instantiation in many C-based object-oriented languages.
+\begin{verbatim}
+new MyObject(argument1, argument2, ...);
+\end{verbatim}
+The arguments outlined here are to be supplied to the parameters of one of the class’ constructors. Now a new language, or intermediate representation, can be built with a new object instantiation on each new line.
+\begin{verbatim}
+new MyObject1(argument1, argument2, ...);
+new MyObject2(argument1, argument2, ...);
+new MyObject3(argument1, argument2, ...);
+...
+\end{verbatim}
+Since this representation is fairly simple, a parser would not require the new keyword or semicolon to end a statement, so this can be omitted:
+\begin{verbatim}
+MyObject1(argument1, argument2, ...)
+MyObject2(argument1, argument2, ...)
+MyObject3(argument1, argument2, ...)
+...
+\end{verbatim}
+The spaces between arguments can be removed, the opening parentheses replaced with a space, and closing parentheses removed, making:
+\begin{verbatim}
+MyObject1 argument1,argument2 ...
+MyObject2 argument1,argument2 ...
+MyObject3 argument1,argument2 ...
+...
+\end{verbatim}
+This is the most reduced form possible for the representation, in terms of least number of characters without compression. However, it does lose some readability, as the parentheses are useful for indicating to the user that the arguments belong to the object.
+
+\subsection{JSON Representation}
+Using a standard format for storing data is obviously very useful. JavaScript Object Notation, or JSON for short, is an open standard file format, and data interchange format, that uses human-readable text to store and transmit data objects consisting of attribute–value pairs and array data types \cite{json}. It resembles the representation outlined above. The equivalent representation in JSON would use a key-value pair to store the class name and constructor parameters respectively, with all objects collectively enclosed in a JSON object:
+\begin{verbatim}
+{
+“MyObject1”:[argument1,argument2, ...],
+“MyObject2”:[argument1,argument2, ...],
+“MyObject3”:[argument1,argument2, ...]
+...
+}
+\end{verbatim}
+As this ends up being so similar, it makes logical sense to use JSON as the format for the intermediate representation of programs. As mentioned, the biggest reason for this is that it is a standard format of data, which makes it easier to store and distribute to different forms. JSON can be collapsed to be on a single line, with whitespaces between tokens removed. This form is useful for transmission, as it is more compressed. Alternatively, it can be automatically formatted with whitespaces used as indentation to show the hierarchical structure of the data. This form is easier to read and more user friendly. Representing objects in this way also allows the representation of classes with a single constructor parameter to be simplified so that the square brackets do not need to be included.
+\begin{verbatim}
+“MyObject1”: argument,
+\end{verbatim}
+JSON is composed of values, lists, and objects. The previous two examples show how a JSON list can be used to represent multiple arguments of a class constructor, and a JSON value can be used to represent a single argument of a class constructor. A JSON object can also be used to represent the parameters of an object constructor:
+\begin{verbatim}
+“MyObject1”:{
+  “parameter1”: argument1,
+  “parameter2”: argument2
+}
+\end{verbatim}
+This more verbose form is useful for when the object constructor has many parameters, and remembering the ordering of these parameters can be difficult. The order that the parameters are specified in this form does not matter. The previous example represents the same object as the following:
+\begin{verbatim}
+“MyObject1”:{
+  “parameter1”: argument1,
+  “parameter2”: argument2
+}
+\end{verbatim}
+So far, the values of the class’ constructor parameters have always been single, primitive types (a string, number or boolean). As JSON structures data hierarchically, it allows for the potential of nested data in object representations. If the class constructor has a single parameter of list of array type, it can be represented as:
+\begin{verbatim}
+“MyObject1”:[ [“a”, “b”, “c”] ]
+\end{verbatim}
+Representing constructor parameters that are of the type of another non-primitive object is more difficult. Curly brackets must be used in this case as square brackets would indicate the constructor parameter is a list or array type like in the previous example. For example, if the constructor of MyObject1 has a single parameter of type MyObject2, the representation for MyObject2 can be nested inside the representation for MyObject1:
+\begin{verbatim}
+“MyObject1”:[
+  {
+  ...
+  }
+]
+\end{verbatim}
+However this is ambiguous in the following case. If MyObject1 has multiple constructors with parameters of different object types. For example, if MyObject1 has two constructors, one with a single parameter of type MyObject2, and another with a single parameter of type MyObject3, the above example is ambiguous as to which constructor it is attempting to instantiate. Attempting to determine whether the specified parameter is of type MyObject2 or MyObject3 introduces cascading complexity. It would be computationally expensive and messy to implement. Due to this, the solution does not attempt to represent objects in this form. However, if the representation for MyObject1 uses curly brackets rather than square brackets, the representation is able to specify that the parameter is of type MyObject2:
+\begin{verbatim}
+“MyObject1”:{
+  “MyObject2”:{
+  ...
+  }
+}
+\end{verbatim}
+The limitation of this example is that MyObject2 must be both the name of the parameter of MyObject1, and the name of the object type. For example the actual constructor for MyObject1 in code would look like:
+\begin{verbatim}
+public MyObject1(MyObject2 MyObject2) {
+  ...
+}
+\end{verbatim}
+Implementing constructors this way is not good practise, as it violates the variable naming convention of lower camel case, which many object-oriented languages use. The solution supports case insensitive object type names, meaning object constructors can be written in the following way:
+\begin{verbatim}
+public MyObject1(MyObject2 myObject2) {
+  ...
+}
+\end{verbatim}
+And the representation can be written as:
+\begin{verbatim}
+“MyObject1”:{
+“myObject2”:{
+  ...
+}
+}
+\end{verbatim}
+Due to this, the solution does allow representations in this specific form. This is the extent to which it was found object-oriented style objects could be represented in JSON.\par
+Some representations will contain multiple instances of the same object type. For example,
+\begin{verbatim}
+{
+“MyObject1”:[argument1,argument2, ...],
+“MyObject1”:[argument1,argument2, ...]
+  ...
+}
+\end{verbatim}
+JSON objects do not allow duplicate keys, and many parsers implement them using a map data structure. This means the above representation will not be interpreted correctly. To solve this, the solution must implement its own JSON parser, allowing duplicate keys by implementing objects using a list of entries rather than a map data structure. Hence, the format of the intermediate representation is actually a superset of the JSON format. This is because the parser is able to parse everything a JSON parser can parse, as well as representations a JSON parser can not parse.
+
+\section{GSON}
+
+GSON is a commonly used JSON library made by Google. It allows serialisation of Java objects to JSON, and deserialisation of JSON back to Java objects \cite{gson}. The main difference between how objects are instantiated in the solution and GSON is that in GSON, class constructors are not used to instantiate objects. It creates an \texttt{ObjectConstructor} with an \texttt{UnsafeAllocator} which uses Java reflection to get the \texttt{allocateInstance} method of the class \texttt{sun.misc.Unsafe} to create the class instance \cite{gson_instance_creator}. In simpler terms, GSON uses somewhat of a hack to allocate memory for an object and instantiates it without using any of its constructors.\par
+\subsection{No Constructor Object Instantiation}
+Since instantiating a class instance without using a constructor is not supposed to be allowed in Java, it can cause potential issues. Hence the GSON documentation recommends having a default, no-parameter constructor for any objects you wish to serialise. Since the global fields of the object are not set with a constructor, GSON sets them directly using Java reflection. Instantiating objects in this way does avoid dealing with the complexities outlined in the previous section. It also supports nested objects, objects whose properties are other non-primitive objects. Hence GSON recursively serialises the fields of objects till all properties are primitive types that can be stored in JSON.\par
+Because of this, GSON works excellently for serialising and deserialising data objects. However, since class constructors are never invoked, any useful code in the class constructors is never executed. Also, in many cases constructors will call each other, often to convert their parameters to different types. For example, figure \ref{fig:constructor_overloading} shows a \texttt{Relationship} class that stores a relationship between two users. It changes the types of the supplied arguments using constructor overloading.\par
+\begin{figure}
+\caption{Example class with constructor overloading}
+\label{fig:constructor_overloading}
+\begin{verbatim}
+
+class Relationship {
+  private final User user1, User user2;
+
+  public Relationship(String userId1, String userId2) {
+    this(Database.getUser(userId1), Database.getUser(userId2));
+  }
+
+  public Relationship(User user1, User user2) {
+    this.user1 = user1;
+    this.user2 = user2;
+  }
+}
+\end{verbatim}
+\end{figure}
+It would be useless to use this object in GSON, as it would not be able to invoke the first constructor which takes two string types, and could only create a new instance of the User object, not the one supplied from the data. Also, GSON is only capable of deserialising one object at a time. The solution requires deserialising multiple objects in a list in order to collectively form an executable program, meaning GSON could not be used. For these reasons, GSON is not used in the final solution.
+
+\section{Reflection}
+
+Reflection is the ability of a process to examine, introspect, and modify its own structure and behaviour \cite{reflection}. It is possible to be used for object instantiation and meta analysis. The solution requires class’ constructors to be evaluated to find which one is most suitable. The most suitable constructor is then used to instantiate a new instance of the class.\par
+Not all object-oriented languages support reflection to this extent. C++ does not support reflection. Python does support reflection, however since Python classes can only have one constructor, the techniques discussed earlier will be less effective. Python also does not require types to be specified, which increases the ambiguity during instantiation. Java and C\# both support extensive reflection. It is possible to obtain constructor parameter types, and bypass member access rules, meaning private constructors can be used \cite{reflection}. Java is used in the solution over C\# as it is a more popular language.
+\subsection{Reflective Object Instantiation}
+Before any coding began on the project, it was important to verify reflection is capable of object instantiation in the ways discussed. Figure \ref{fig:reflective_instantiation} shows how reflection is able to instantiate the constructor of a class whose parameters are the same type as the supplied arguments.
+\begin{figure}
+\caption{Reflective Object Instantiation}
+\label{fig:reflective_instantiation}
+\begin{verbatim}
+Object instantiate(String packageName, String className,
+Object... arguments) throws Exception {
+  Class<?> clazz = Class.forName(packageName + "." + className);
+  Class<?>[] suppliedTypes = Stream.of(arguments).map(Object::getClass)
+  .toArray(Class<?>[]::new);
+
+  for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+    if (Arrays.equals(suppliedTypes, constructor.getParameterTypes())) {
+      constructor.setAccessible(true);
+      return constructor.newInstance(arguments);
+    }
+  }
+
+  return null;
+}
+\end{verbatim}
+\end{figure}
+
+\section{JavaCC}
+
+As previously explained, a custom JSON parser was needed to be implemented in order to allow many keys of the same name to exist within a JSON object. Java is the preferred language of choice for the solution due to the reasons mentioned in the previous section. JavaCC (Java Compiler Compiler (a compiler that creates compilers)) is an open-source parser generator and lexical analyzer generator written in Java \cite{javacc}. It generates a parser from a formal grammar written in EBNF notation. Having a parser generated directly from a grammar is logically going to be more performant than a parser written from scratch. This makes it a
+ sensible choice to use to write a JSON parser in Java.
+
+\section{React}
+
+React is a JavaScript library for building user interfaces. It is the most popular user interface framework at the time of writing \cite{top_user_interface_libraries}. React interfaces are built from components, which are independent and reusable bits of code. They serve the same purpose as JavaScript functions, but work in isolation and return HTML via a render function \cite{react}. Components can have other components inside them, meaning all components form a tree hierarchy, with a single root component at the top of the tree. 
+\subsection{Drag and Drop Components}
+React has premade frameworks to create drag and drop lists. This makes it a sensible choice for a user interface framework. React has two main variations: ReactJS and React Native. ReactJS is for creation of websites, React Native is for mobile applications. Both use the component structure, however since React Native is not used for websites, it does not use HTML \cite{react_native}. To make the final product most accessible to users, the interface should be built as a web app, using ReactJS.
