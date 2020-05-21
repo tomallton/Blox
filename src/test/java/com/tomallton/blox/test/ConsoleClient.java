@@ -1,4 +1,4 @@
-package test;
+package com.tomallton.blox.test;
 
 public class ConsoleClient {
 

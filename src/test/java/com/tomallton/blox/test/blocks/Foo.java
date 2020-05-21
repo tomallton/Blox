@@ -1,4 +1,4 @@
-package test.blocks;
+package com.tomallton.blox.test.blocks;
 
 public class Foo {
 

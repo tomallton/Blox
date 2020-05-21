@@ -1,4 +1,4 @@
-package test;
+package com.tomallton.blox.test;
 
 import java.io.File;
 
@@ -9,7 +9,7 @@ import com.tomallton.blox.Blox;
  * - Create GUI
  * - Fully comment all methods with JavaDocs
  */
-public class Test {
+public class ParsingTest {
 
     public static void main(String[] args) throws Exception {
         Blox<ConsoleClient> blox = new Blox<>();
