@@ -30,7 +30,8 @@ public class Parser implements ParserConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    return json;
+    {if (true) return json;}
+    throw new Error("Missing return statement in function");
   }
 
   final public Object element() throws ParseException {
@@ -54,7 +55,8 @@ public class Parser implements ParserConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    return element;
+    {if (true) return element;}
+    throw new Error("Missing return statement in function");
   }
 
   final public Object value() throws ParseException {
@@ -76,11 +78,11 @@ public class Parser implements ParserConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    return value;
+    {if (true) return value;}
+    throw new Error("Missing return statement in function");
   }
 
-  @SuppressWarnings("unused")
-final public Number number() throws ParseException {
+  final public Number number() throws ParseException {
   Token token;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER:
@@ -102,7 +104,8 @@ final public Number number() throws ParseException {
   final public String string() throws ParseException {
     jj_consume_token(STRING);
     String image = token.image;
-    return image.substring(1, image.length() - 1);
+    {if (true) return image.substring(1, image.length() - 1).replace("\u005c\u005cn", "\u005cn");}
+    throw new Error("Missing return statement in function");
   }
 
   final public boolean booleanValue() throws ParseException {
@@ -121,7 +124,8 @@ final public Number number() throws ParseException {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    return value;
+    {if (true) return value;}
+    throw new Error("Missing return statement in function");
   }
 
   final public List<Object> array() throws ParseException {
@@ -158,7 +162,8 @@ final public Number number() throws ParseException {
       ;
     }
     jj_consume_token(BRACKET_CLOSE);
-    return array;
+    {if (true) return array;}
+    throw new Error("Missing return statement in function");
   }
 
   final public List<Entry<String, Object>> object() throws ParseException {
@@ -194,7 +199,8 @@ final public Number number() throws ParseException {
       ;
     }
     jj_consume_token(BRACE_CLOSE);
-    return object;
+    {if (true) return object;}
+    throw new Error("Missing return statement in function");
   }
 
   /** Generated Token Manager. */

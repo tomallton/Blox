@@ -49,7 +49,7 @@ TOKEN :
 | 
   < DECIMAL : ("-")? (< DIGIT >)* "." (< DIGIT >)+ >
 | 
-  < STRING : < QUOTE > ("\\" ~[] | ~["\"", "\\"])* < QUOTE > >
+  < STRING : < QUOTE > ("\\n" ~[] | ~["\"", "\\"])* < QUOTE > >
 |
   < TRUE : "true" >
 | 
@@ -141,7 +141,7 @@ String string() :
   < STRING >
   {
     String image = token.image;
-    return image.substring(1, image.length() - 1);
+    return image.substring(1, image.length() - 1).replace("\\n", "\n");
   }
 }
 

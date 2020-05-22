@@ -448,11 +448,13 @@ public class Blox<C> {
         return null;
     }
 
-    public void addBlocks(String packageName) {
+    public Blox<C> addBlocks(String packageName) {
         ClassUtils.getClasses(packageName).forEach(this::addBlock);
+
+        return this;
     }
 
-    public void addBlock(Class<?> blockType) {
+    public Blox<C> addBlock(Class<?> blockType) {
         blocks.put(blockType.getSimpleName().toLowerCase(), blockType);
 
         Map<Constructor<?>, List<String>> constructors = new HashMap<>();
@@ -462,6 +464,12 @@ public class Blox<C> {
         }
 
         this.blockConstructors.put(blockType, constructors);
+        
+        return this;
+    }
+
+    public Map<String, Class<?>> getBlocks() {
+        return blocks;
     }
 
     public void addCast(Class<?> from, Class<?> to) {

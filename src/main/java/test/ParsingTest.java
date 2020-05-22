@@ -1,6 +1,4 @@
-package com.tomallton.blox.test;
-
-import java.io.File;
+package test;
 
 import com.tomallton.blox.Blox;
 
@@ -14,7 +12,7 @@ public class ParsingTest {
     public static void main(String[] args) throws Exception {
         Blox<ConsoleClient> blox = new Blox<>();
         blox.addBlocks("test.blocks");
-        blox.load(new File("/Users/Tom/Documents/GitHub/Blox/src/main/resources"));
+        blox.load("src/main/resources");
     }
 
 }
