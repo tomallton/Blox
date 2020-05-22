@@ -1,3 +1,10 @@
 {
-"TestBlock": "Hello\nworld"
+"Create neural network": {
+  "name": "test_model",
+  "file": "src/main/resources/cancer.csv",
+  "featureColumnStart": 2,
+  "featureColumnEnd": 32,
+  "labelColumn": 1,
+  "trainProportion": 0.8
+}
 }

@@ -49,7 +49,7 @@ TOKEN :
 | 
   < DECIMAL : ("-")? (< DIGIT >)* "." (< DIGIT >)+ >
 | 
-  < STRING : < QUOTE > ("\\n" ~[] | ~["\"", "\\"])* < QUOTE > >
+  < STRING : < QUOTE > ("\\" ~[] | ~["\"", "\\"])* < QUOTE > >
 |
   < TRUE : "true" >
 | 

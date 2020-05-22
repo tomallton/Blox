@@ -1,34 +1,14 @@
-package com.tomallton.blox.util;
+package com.tomallton.neuralnetwork.util;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FileUtils {
-
-    public static Set<File> getFiles(File folder) {
-        Set<File> files = new HashSet<>();
-
-        if (!folder.isDirectory()) {
-            return files;
-        }
-
-        for (File file : folder.listFiles()) {
-            if (file.isDirectory()) {
-                files.addAll(getFiles(file));
-            } else {
-                files.add(file);
-            }
-        }
-
-        return files;
-    }
 
     public static List<String> readFile(File file) {
         return readFile(file.getPath());
@@ -42,4 +22,5 @@ public class FileUtils {
         }
         return null;
     }
+
 }
