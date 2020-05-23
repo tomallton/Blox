@@ -195,6 +195,7 @@ public class Blox<C> {
                     // nested block
                     if (suppliedParam instanceof LinkedList) {
                         suppliedParam = getBlock(paramTypes[i], suppliedParam);
+                        suppliedClass = suppliedParam.getClass();
                     } else {
                         // cast number to match type
                         suppliedParam = castNumber(paramTypes[i], suppliedParam);
@@ -254,7 +255,7 @@ public class Blox<C> {
                 Class<?> arrayTest = paramTypes[paramTypes.length - 1];
 
                 if (arrayTest.getComponentType().isPrimitive()) {
-                    parameters.add(createPrimitiveArray(typeArray, arrayTest));
+                    parameters.add(createPrimitiveArray(typeArray, arrayTest.getComponentType()));
                 } else {
                     parameters.add(typeArray.toArray((Object[]) Array.newInstance(arrayTest.getComponentType(), typeArray.size())));
                 }
@@ -265,21 +266,23 @@ public class Blox<C> {
         try {
             return constructor.newInstance(parameters.toArray(new Object[parameters.size()]));
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Error loading " + blockClass.getSimpleName() + ", invalid parameters " + parameters);
+            throw new IllegalArgumentException("Error loading " + blockClass.getSimpleName() + " using constructor " + constructor + ", invalid parameters " + parameters);
         }
     }
 
     private Constructor<?> getConstructor(Class<?> clazz, List<Object> parameters, boolean lenient) {
         search: for (Constructor<?> c : clazz.getConstructors()) {
             int numParameters = c.getParameterTypes().length;
+            boolean arrayParameter = false;
 
             // don't require array parameter
             if (numParameters > 0 && c.getParameterTypes()[c.getParameterTypes().length - 1].isArray()) {
                 numParameters--;
+                arrayParameter = true;
             }
 
-            // continue if not enough parameters
-            if (parameters.size() < numParameters) {
+            // continue if not right number of parameters
+            if (arrayParameter ? parameters.size() < numParameters : parameters.size() != numParameters) {
                 continue;
             }
 

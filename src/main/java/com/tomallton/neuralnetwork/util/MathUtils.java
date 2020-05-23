@@ -95,7 +95,7 @@ public class MathUtils {
 
     public static double[] subtract(double[] a, double[] b) {
         if (a.length != b.length) {
-            throw new IllegalArgumentException("Length of arrays are not the same");
+            throw new IllegalArgumentException("Length of arrays are not the same " + a.length + ", " + b.length);
         }
         for (int i = 0; i < a.length; i++) {
             a[i] = a[i] - b[i];

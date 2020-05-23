@@ -1,10 +1,6 @@
 {
-"Create neural network": {
-  "name": "test_model",
-  "file": "src/main/resources/cancer.csv",
-  "featureColumnStart": 2,
-  "featureColumnEnd": 32,
-  "labelColumn": 1,
-  "trainProportion": 0.8
+"TestBlock": {
+"a": "test",
+"location": { "x": 1.0, "y": 2.0, "z": 3.0 }
 }
 }

@@ -3,12 +3,13 @@ package com.tomallton.neuralnetwork.blocks;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import com.tomallton.blox.Block;
 import com.tomallton.neuralnetwork.ActivationFunction;
 import com.tomallton.neuralnetwork.DerivableFunction;
 import com.tomallton.neuralnetwork.util.MathUtils;
 import com.tomallton.neuralnetwork.util.StringUtils;
 
-public class Layer implements Function<double[], double[]> {
+public class Layer implements Function<double[], double[]>, Block {
     private final double[][] weights;
     private final boolean bias;
     private final DerivableFunction activationFunction;
@@ -29,7 +30,7 @@ public class Layer implements Function<double[], double[]> {
     }
 
     public Layer(int neurons, boolean bias, String activationFunction) {
-        this(neurons, bias, StringUtils.getEnumValue(ActivationFunction.class, activationFunction));
+        this(neurons, bias, ActivationFunction.valueOf(activationFunction.toUpperCase().replaceAll(" ", "_")));
     }
 
     public Layer(int neurons, boolean bias, ActivationFunction activationFunction) {

@@ -9,6 +9,8 @@ import com.tomallton.blox.Blox;
 import com.tomallton.neuralnetwork.blocks.CreateNeuralNetwork;
 import com.tomallton.neuralnetwork.blocks.Layer;
 import com.tomallton.neuralnetwork.blocks.NeuralNetwork;
+import com.tomallton.neuralnetwork.blocks.Predict;
+import com.tomallton.neuralnetwork.blocks.Train;
 import com.tomallton.neuralnetwork.util.FileUtils;
 import com.tomallton.neuralnetwork.util.MathUtils;
 import com.tomallton.neuralnetwork.util.Pair;
@@ -27,6 +29,8 @@ public class ArtificialIntelligenceTest {
         blox.addBlock(Layer.class);
         blox.addBlock(NeuralNetwork.class);
         blox.addBlock(CreateNeuralNetwork.class);
+        blox.addBlock(Predict.class);
+        blox.addBlock(Train.class);
 
         blox.load(new File("src/main/resources"));
     }

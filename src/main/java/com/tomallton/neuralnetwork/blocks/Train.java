@@ -7,32 +7,43 @@ import java.util.List;
 
 import com.tomallton.blox.Block;
 import com.tomallton.blox.Script;
-import com.tomallton.neuralnetwork.ActivationFunction;
 import com.tomallton.neuralnetwork.util.FileUtils;
 import com.tomallton.neuralnetwork.util.MathUtils;
 import com.tomallton.neuralnetwork.util.Pair;
 import com.tomallton.neuralnetwork.util.StringUtils;
 
-public class CreateNeuralNetwork implements Block {
+public class Train implements Block {
     private static final double DEFAULT_TRAIN_PROPORTION = 0.7;
 
-    private final String name;
+    private final String modelName, file;
+    private final int featureColumnStart, featureColumnEnd, labelColumnStart, labelColumnEnd;
+    private final double trainProportion;
 
-    private NeuralNetwork model;
-
-    public CreateNeuralNetwork(String name) {
-        this.name = name;
+    public Train(String modelName, String file, int featureColumnStart, int featureColumnEnd, int labelColumn) {
+        this(modelName, file, featureColumnStart, featureColumnEnd, labelColumn, DEFAULT_TRAIN_PROPORTION);
     }
 
-    public CreateNeuralNetwork(String name, String file, int featureColumnStart, int featureColumnEnd, int labelColumn) {
-        this(name, file, featureColumnStart, featureColumnEnd, labelColumn, DEFAULT_TRAIN_PROPORTION);
+    public Train(String modelName, String file, int featureColumnStart, int featureColumnEnd, int labelColumn, double trainProportion) {
+        this(modelName, file, featureColumnStart, featureColumnEnd, labelColumn, labelColumn + 1, trainProportion);
     }
 
-    public CreateNeuralNetwork(String name, String file, int featureColumnStart, int featureColumnEnd, int labelColumn, double trainProportion) {
-        this(name, file, featureColumnStart, featureColumnEnd, labelColumn, labelColumn + 1, trainProportion);
+    public Train(String modelName, String file, int featureColumnStart, int featureColumnEnd, int labelColumnStart, int labelColumnEnd, double trainProportion) {
+        this.modelName = modelName;
+        this.file = file;
+        this.featureColumnStart = featureColumnStart;
+        this.featureColumnEnd = featureColumnEnd;
+        this.labelColumnStart = labelColumnStart;
+        this.labelColumnEnd = labelColumnEnd;
+        this.trainProportion = trainProportion;
     }
 
-    public CreateNeuralNetwork(String name, String file, int featureColumnStart, int featureColumnEnd, int labelColumnStart, int labelColumnEnd, double trainProportion) {
+    @Override
+    public void onLoad(Script<?> script) {
+        if (!(script.getAttribute(modelName) instanceof NeuralNetwork)) {
+            return;
+        }
+        NeuralNetwork model = (NeuralNetwork) script.getAttribute(modelName);
+
         File f = new File(file);
 
         if (!f.exists() || !f.isFile()) {
@@ -77,11 +88,6 @@ public class CreateNeuralNetwork implements Block {
         // normalize data
         MathUtils.normalize(X);
 
-        int inputSize = X[0].length;
-        int outputSize = labelColumnEnd - labelColumnStart;
-
-        NeuralNetwork model = new NeuralNetwork(new Layer(inputSize, ActivationFunction.SIGMOID), new Layer((inputSize + outputSize) / 2, ActivationFunction.SIGMOID), new Layer(outputSize));
-
         Pair<Pair<double[][], double[][]>, Pair<double[][], double[][]>> trainTestSplit = MathUtils.trainTestSplit(X, y, 1 - trainProportion);
 
         double[][] xTrain = trainTestSplit.getLeft().getLeft();
@@ -98,26 +104,6 @@ public class CreateNeuralNetwork implements Block {
 
         // print accuracy
         double accuracy = MathUtils.accuracy(yPredict, yTest);
-        System.out.println("Trained neural network model, accuracy: " + StringUtils.formatPercentage(accuracy));
-
-        this.name = name;
-        this.model = model;
-    }
-
-    @Override
-    public void onLoad(Script<?> script) {
-        if (model == null) {
-            List<Block> blocks = script.getBlocks();
-            List<Layer> layers = new ArrayList<>();
-            for (int i = 0; i < blocks.size(); i++) {
-                if (blocks.get(i) instanceof Layer) {
-                    layers.add((Layer) blocks.get(i));
-                } else if (blocks.get(i) == this) {
-                    break;
-                }
-            }
-            model = new NeuralNetwork(layers);
-        }
-        script.setAttribute(name, model);
+        System.out.println("Trained model, accuracy: " + StringUtils.formatPercentage(accuracy));
     }
 }
