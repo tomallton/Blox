@@ -16,7 +16,8 @@ public class Parser implements ParserConstants {
     parser.parse();
   }
 
-  final public Object parse() throws ParseException {
+  @SuppressWarnings("unused")
+final public Object parse() throws ParseException {
   Object json;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case BRACKET_OPEN:
@@ -55,8 +56,7 @@ public class Parser implements ParserConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    {if (true) return element;}
-    throw new Error("Missing return statement in function");
+    return element;
   }
 
   final public Object value() throws ParseException {
@@ -78,8 +78,7 @@ public class Parser implements ParserConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    {if (true) return value;}
-    throw new Error("Missing return statement in function");
+    return value;
   }
 
   final public Number number() throws ParseException {
@@ -87,25 +86,21 @@ public class Parser implements ParserConstants {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INTEGER:
       token = jj_consume_token(INTEGER);
-      {if (true) return new BigInteger(token.image);}
-      break;
+      return new BigInteger(token.image);
     case DECIMAL:
       token = jj_consume_token(DECIMAL);
-      {if (true) return new BigDecimal(token.image);}
-      break;
+      return new BigDecimal(token.image);
     default:
       jj_la1[3] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-    throw new Error("Missing return statement in function");
   }
 
   final public String string() throws ParseException {
     jj_consume_token(STRING);
     String image = token.image;
-    {if (true) return image.substring(1, image.length() - 1).replace("\u005c\u005cn", "\u005cn");}
-    throw new Error("Missing return statement in function");
+    return image.substring(1, image.length() - 1).replace("\u005c\u005cn", "\u005cn");
   }
 
   final public boolean booleanValue() throws ParseException {
@@ -124,8 +119,7 @@ public class Parser implements ParserConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
-    {if (true) return value;}
-    throw new Error("Missing return statement in function");
+    return value;
   }
 
   final public List<Object> array() throws ParseException {
@@ -162,8 +156,7 @@ public class Parser implements ParserConstants {
       ;
     }
     jj_consume_token(BRACKET_CLOSE);
-    {if (true) return array;}
-    throw new Error("Missing return statement in function");
+    return array;
   }
 
   final public List<Entry<String, Object>> object() throws ParseException {
@@ -199,8 +192,7 @@ public class Parser implements ParserConstants {
       ;
     }
     jj_consume_token(BRACE_CLOSE);
-    {if (true) return object;}
-    throw new Error("Missing return statement in function");
+    return object;
   }
 
   /** Generated Token Manager. */
