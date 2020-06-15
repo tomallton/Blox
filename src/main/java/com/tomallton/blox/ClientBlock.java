@@ -2,8 +2,9 @@ package com.tomallton.blox;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
-public class ClientBlock<C> implements Block {
+public class ClientBlock<C> implements Block, Consumer<C> {
     private Script<C> script;
     private int index;
 
@@ -41,6 +42,11 @@ public class ClientBlock<C> implements Block {
 
     public boolean has(C client) {
         return clients.contains(client);
+    }
+
+    @Override
+    public void accept(C client) {
+        add(client);
     }
 
     public boolean add(C client) {
